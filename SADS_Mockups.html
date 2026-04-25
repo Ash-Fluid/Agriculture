@@ -1,0 +1,2129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SADS — Fluid Scientific</title>
+<style>
+  :root {
+    --green-900: #1B4332;
+    --green-800: #2D6A4F;
+    --green-700: #40916C;
+    --green-500: #74C69D;
+    --green-200: #D8F3DC;
+    --green-100: #EEF9F1;
+    --amber: #F4A261;
+    --amber-light: #FFF3E0;
+    --red: #E63946;
+    --red-light: #FFECEE;
+    --blue: #3A86FF;
+    --blue-light: #EBF3FF;
+    --gray-900: #1A1A2E;
+    --gray-700: #374151;
+    --gray-500: #6B7280;
+    --gray-300: #D1D5DB;
+    --gray-200: #E5E7EB;
+    --gray-100: #F3F4F6;
+    --white: #FFFFFF;
+    --koncile: #6C3FC5;
+    --koncile-lt: #F3EEFF;
+    --teal: #2f6e73;
+    --teal-lt: #e0f2f1;
+    --sidebar-w: 220px;
+    --topnav-h: 56px;
+    --portalnav-h: 48px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--gray-100); color: var(--gray-900); font-size: 14px; }
+
+  /* ── Login screen ── */
+  #login-screen {
+    position: fixed; inset: 0; z-index: 9999;
+    background: linear-gradient(135deg, #0d2b1f 0%, #1B4332 55%, #1a3a52 100%);
+    display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 24px;
+  }
+  .login-card {
+    background: white; border-radius: 16px; width: 420px;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.45); overflow: hidden;
+  }
+  .login-header {
+    background: var(--green-900); padding: 30px 36px 22px;
+    display: flex; flex-direction: column; align-items: flex-start; gap: 10px;
+  }
+  .login-header svg { height: 24px; width: auto; fill: white; }
+  .login-header .login-product { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--green-500); }
+  .login-header .login-tagline { font-size: 12.5px; color: rgba(255,255,255,0.55); line-height: 1.4; }
+  .login-body { padding: 24px 36px 30px; }
+  .login-divider { display: flex; align-items: center; gap: 12px; margin: 16px 0 14px; color: var(--gray-500); font-size: 11.5px; }
+  .login-divider::before, .login-divider::after { content: ''; flex: 1; height: 1px; background: var(--gray-200); }
+  .role-cards { display: flex; flex-direction: column; gap: 8px; }
+  .role-card {
+    border: 1.5px solid var(--gray-200); border-radius: 8px; padding: 11px 14px;
+    cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.12s;
+  }
+  .role-card:hover { border-color: var(--green-500); background: var(--green-100); }
+  .role-card.selected { border-color: var(--green-700); background: var(--green-100); box-shadow: 0 0 0 2px var(--green-200); }
+  .role-icon { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
+  .role-icon.producer { background: #D8F3DC; }
+  .role-icon.recipient { background: #DBEAFE; }
+  .role-icon.admin { background: #F3E8FF; }
+  .role-name { font-size: 13.5px; font-weight: 700; color: var(--gray-900); }
+  .role-desc { font-size: 11.5px; color: var(--gray-500); margin-top: 1px; }
+  .login-btn {
+    width: 100%; padding: 11px; border-radius: 8px; border: none;
+    background: var(--green-700); color: white; font-size: 14px; font-weight: 700;
+    cursor: pointer; margin-top: 18px; transition: background 0.12s; letter-spacing: 0.2px;
+  }
+  .login-btn:hover { background: var(--green-800); }
+  .login-footnote { font-size: 11px; color: var(--gray-500); text-align: center; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--gray-200); }
+  .login-bg-note { font-size: 11px; color: rgba(255,255,255,0.28); text-align: center; }
+
+  /* ── Admin portal accent colour (purple) ── */
+  #portal-admin .nav-item:hover { background: #F3E8FF; color: #6B21A8; }
+  #portal-admin .nav-item.active { background: #F3E8FF; color: #6B21A8; border-left-color: #9333EA; }
+  #portal-admin .sidebar-logo .product-name { color: var(--gray-500); }
+  .admin-stat { border-left: 3px solid #9333EA; padding-left: 12px; }
+  .portal-tab.admin-tab.active { background: #7E22CE; }
+  .badge-purple { background: #F3E8FF; color: #6B21A8; }
+  .tier-admin { display: inline-flex; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; background: #F3E8FF; color: #6B21A8; }
+
+  /* ── Portal switcher bar ── */
+  .portal-bar {
+    position: fixed; top: 0; left: 0; right: 0; height: var(--portalnav-h);
+    background: var(--green-900); display: flex; align-items: center;
+    padding: 0 20px; gap: 4px; z-index: 100;
+  }
+  .portal-bar .brand { display: flex; align-items: center; margin-right: 20px; gap: 10px; }
+  .portal-bar .brand svg { height: 22px; width: auto; fill: white; }
+  .portal-bar .brand .sads-tag { font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--green-500); background: rgba(116,198,157,0.15); border: 1px solid rgba(116,198,157,0.35); border-radius: 4px; padding: 2px 7px; white-space: nowrap; }
+  .portal-tab { padding: 6px 14px; border-radius: 6px; border: none; background: transparent; color: rgba(255,255,255,0.55); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s; }
+  .portal-tab:hover { background: rgba(255,255,255,0.08); color: var(--white); }
+  .portal-tab.active { background: var(--green-700); color: var(--white); }
+
+  /* ── App shell ── */
+  .shell { display: flex; padding-top: var(--portalnav-h); min-height: 100vh; }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    position: fixed; top: var(--portalnav-h); left: 0; bottom: 0;
+    width: var(--sidebar-w); background: var(--white);
+    border-right: 1px solid var(--gray-200); padding: 16px 0;
+    overflow-y: auto; z-index: 50;
+  }
+  .sidebar-section { padding: 4px 12px 2px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--gray-500); margin-top: 12px; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 16px; border-radius: 0; color: var(--gray-700); cursor: pointer; transition: all 0.12s; font-size: 13.5px; border-left: 3px solid transparent; }
+  .nav-item:hover { background: var(--green-100); color: var(--green-800); }
+  .nav-item.active { background: var(--green-100); color: var(--green-800); border-left-color: var(--green-700); font-weight: 600; }
+  .nav-item .icon { width: 18px; text-align: center; opacity: 0.7; }
+  .nav-item.active .icon { opacity: 1; }
+  .sidebar-logo { padding: 14px 16px 10px; border-bottom: 1px solid var(--gray-200); margin-bottom: 4px; }
+  .sidebar-logo svg { height: 16px; width: auto; fill: var(--gray-900); }
+  .sidebar-logo .product-name { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--gray-500); margin-top: 4px; }
+  .sidebar-user { padding: 12px 16px; border-top: 1px solid var(--gray-200); margin-top: 16px; display: flex; align-items: center; gap: 10px; }
+  .avatar-sm { width: 28px; height: 28px; border-radius: 50%; background: var(--green-700); color: white; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .user-info { line-height: 1.3; }
+  .user-name { font-size: 12.5px; font-weight: 600; color: var(--gray-900); }
+  .user-role { font-size: 11px; color: var(--gray-500); }
+
+  /* ── Main content ── */
+  .main { margin-left: var(--sidebar-w); flex: 1; padding: 28px 32px; min-height: calc(100vh - var(--portalnav-h)); }
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* ── Page header ── */
+  .page-header { margin-bottom: 24px; }
+  .page-title { font-size: 22px; font-weight: 700; color: var(--gray-900); }
+  .page-sub { font-size: 13.5px; color: var(--gray-500); margin-top: 3px; }
+  .page-actions { display: flex; gap: 8px; margin-top: 12px; }
+
+  /* ── Buttons ── */
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: all 0.12s; }
+  .btn-primary { background: var(--green-700); color: white; }
+  .btn-primary:hover { background: var(--green-800); }
+  .btn-secondary { background: var(--white); color: var(--gray-700); border: 1px solid var(--gray-300); }
+  .btn-secondary:hover { background: var(--gray-100); }
+  .btn-ghost { background: transparent; color: var(--green-700); border: 1px solid var(--green-500); }
+  .btn-sm { padding: 5px 11px; font-size: 12px; }
+  .btn-danger { background: var(--red); color: white; }
+
+  /* ── Cards ── */
+  .card { background: var(--white); border-radius: 10px; border: 1px solid var(--gray-200); overflow: hidden; }
+  .card-header { padding: 16px 20px; border-bottom: 1px solid var(--gray-200); display: flex; align-items: center; justify-content: space-between; }
+  .card-title { font-size: 14px; font-weight: 700; color: var(--gray-900); }
+  .card-body { padding: 20px; }
+
+  /* ── Grid ── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+
+  /* ── Stat cards ── */
+  .stat-card { background: var(--white); border-radius: 10px; border: 1px solid var(--gray-200); padding: 18px 20px; }
+  .stat-label { font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray-500); }
+  .stat-value { font-size: 28px; font-weight: 800; color: var(--gray-900); margin: 4px 0 2px; line-height: 1; }
+  .stat-unit { font-size: 13px; color: var(--gray-500); }
+  .stat-change { font-size: 12px; font-weight: 600; }
+  .stat-change.up { color: var(--green-700); }
+  .stat-change.neutral { color: var(--gray-500); }
+
+  /* ── Tables ── */
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray-500); padding: 10px 16px; border-bottom: 1px solid var(--gray-200); background: var(--gray-100); }
+  td { padding: 12px 16px; border-bottom: 1px solid var(--gray-200); font-size: 13.5px; color: var(--gray-700); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--green-100); }
+
+  /* ── Badges ── */
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 20px; font-size: 11.5px; font-weight: 600; }
+  .badge-green { background: var(--green-200); color: var(--green-800); }
+  .badge-amber { background: var(--amber-light); color: #B45309; }
+  .badge-red { background: var(--red-light); color: var(--red); }
+  .badge-blue { background: var(--blue-light); color: var(--blue); }
+  .badge-gray { background: var(--gray-200); color: var(--gray-700); }
+
+  /* ── Tier badges ── */
+  .tier { display: inline-flex; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; letter-spacing: 0.3px; }
+  .tier-0 { background: #DCFCE7; color: #166534; }
+  .tier-1 { background: #DBEAFE; color: #1D4ED8; }
+  .tier-2 { background: #FEF9C3; color: #854D0E; }
+  .tier-3 { background: #FFEDD5; color: #9A3412; }
+  .tier-4 { background: #FCE7F3; color: #9D174D; }
+
+  /* ── Confidence bar ── */
+  .conf-bar { display: flex; align-items: center; gap: 8px; }
+  .conf-track { flex: 1; height: 6px; background: var(--gray-200); border-radius: 3px; overflow: hidden; }
+  .conf-fill { height: 100%; border-radius: 3px; }
+  .conf-high { background: var(--green-700); }
+  .conf-med { background: var(--amber); }
+  .conf-low { background: var(--red); }
+  .conf-pct { font-size: 12px; font-weight: 700; width: 36px; text-align: right; }
+  .conf-high-text { color: var(--green-700); }
+  .conf-med-text { color: #B45309; }
+  .conf-low-text { color: var(--red); }
+
+  /* ── Toggle / consent switch ── */
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--gray-200); }
+  .toggle-row:last-child { border-bottom: none; }
+  .toggle-label { font-size: 13.5px; font-weight: 500; color: var(--gray-900); }
+  .toggle-desc { font-size: 12px; color: var(--gray-500); margin-top: 2px; }
+  .toggle { position: relative; width: 36px; height: 20px; flex-shrink: 0; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider { position: absolute; cursor: pointer; inset: 0; background: var(--gray-300); border-radius: 20px; transition: 0.2s; }
+  .toggle-slider::before { content: ''; position: absolute; height: 14px; width: 14px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.2s; }
+  .toggle input:checked + .toggle-slider { background: var(--green-700); }
+  .toggle input:checked + .toggle-slider::before { transform: translateX(16px); }
+
+  /* ── Map placeholder ── */
+  .map-placeholder { border-radius: 8px; overflow: hidden; border: 1px solid var(--gray-200); position: relative; background: #E8EDF2; height: 320px; display: flex; align-items: center; justify-content: center; }
+  .map-field { position: absolute; border: 2px solid var(--green-700); background: rgba(64,145,108,0.2); border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: var(--green-800); transition: all 0.15s; }
+  .map-field:hover { background: rgba(64,145,108,0.4); }
+  .map-field.selected { background: rgba(64,145,108,0.5); border-color: var(--green-900); }
+  .map-label { position: absolute; background: white; border-radius: 20px; padding: 2px 7px; font-size: 10px; font-weight: 700; box-shadow: 0 1px 4px rgba(0,0,0,0.15); }
+
+  /* ── OCR upload zone ── */
+  .upload-zone { border: 2px dashed var(--gray-300); border-radius: 10px; padding: 48px 32px; text-align: center; background: var(--gray-100); cursor: pointer; transition: all 0.15s; }
+  .upload-zone:hover { border-color: var(--green-500); background: var(--green-100); }
+  .upload-icon { font-size: 40px; margin-bottom: 12px; }
+  .upload-text { font-size: 15px; font-weight: 600; color: var(--gray-700); }
+  .upload-sub { font-size: 12.5px; color: var(--gray-500); margin-top: 4px; }
+
+  /* ── Field review row ── */
+  .field-row { display: grid; grid-template-columns: 180px 1fr 160px 40px; gap: 12px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--gray-200); }
+  .field-row:last-child { border-bottom: none; }
+  .field-name { font-size: 12.5px; font-weight: 600; color: var(--gray-500); }
+  .field-value input { width: 100%; padding: 7px 10px; border: 1px solid var(--gray-300); border-radius: 6px; font-size: 13px; color: var(--gray-900); background: var(--white); }
+  .field-value input:focus { outline: none; border-color: var(--green-500); box-shadow: 0 0 0 2px var(--green-200); }
+  .field-value input.needs-review { border-color: var(--amber); background: var(--amber-light); }
+  .field-value input.rejected { border-color: var(--red); background: var(--red-light); }
+  .field-edit-btn { width: 32px; height: 32px; border: none; background: var(--gray-100); border-radius: 6px; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+
+  /* ── Progress bar ── */
+  .progress-bar { height: 8px; background: var(--gray-200); border-radius: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--green-700); border-radius: 4px; }
+
+  /* ── Breadcrumb ── */
+  .breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--gray-500); margin-bottom: 20px; }
+  .breadcrumb a { color: var(--green-700); cursor: pointer; }
+  .breadcrumb a:hover { text-decoration: underline; }
+
+  /* ── Alert ── */
+  .alert { padding: 12px 16px; border-radius: 8px; font-size: 13px; display: flex; align-items: flex-start; gap: 10px; margin-bottom: 16px; }
+  .alert-info { background: var(--blue-light); color: #1E40AF; border: 1px solid #BFDBFE; }
+  .alert-warn { background: var(--amber-light); color: #92400E; border: 1px solid #FDE68A; }
+  .alert-success { background: var(--green-200); color: var(--green-900); border: 1px solid var(--green-500); }
+
+  /* ── Divider ── */
+  .divider { height: 1px; background: var(--gray-200); margin: 20px 0; }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 3px; }
+
+  /* ── Activity feed ── */
+  .activity-item { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--gray-200); }
+  .activity-item:last-child { border-bottom: none; }
+  .activity-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+  .dot-green { background: var(--green-700); }
+  .dot-amber { background: var(--amber); }
+  .dot-blue { background: var(--blue); }
+  .activity-text { font-size: 13px; color: var(--gray-700); line-height: 1.4; }
+  .activity-time { font-size: 11.5px; color: var(--gray-500); margin-top: 2px; }
+
+  /* ── Consent tier block ── */
+  .consent-tier { border: 1px solid var(--gray-200); border-radius: 8px; overflow: hidden; margin-bottom: 12px; }
+  .consent-tier-header { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: var(--gray-100); border-bottom: 1px solid var(--gray-200); cursor: pointer; }
+  .consent-tier-body { padding: 4px 0; }
+
+  /* ── Dataset card ── */
+  .dataset-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 10px; padding: 18px 20px; cursor: pointer; transition: all 0.15s; }
+  .dataset-card:hover { border-color: var(--green-500); box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+  .dataset-name { font-size: 14.5px; font-weight: 700; color: var(--gray-900); margin-bottom: 4px; }
+  .dataset-meta { font-size: 12px; color: var(--gray-500); }
+  .dataset-stats { display: flex; gap: 16px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--gray-200); }
+  .dataset-stat { text-align: center; }
+  .dataset-stat-val { font-size: 18px; font-weight: 800; color: var(--green-800); }
+  .dataset-stat-label { font-size: 10.5px; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.4px; }
+
+  /* ── Inline form ── */
+  .form-group { margin-bottom: 16px; }
+  .form-label { display: block; font-size: 12.5px; font-weight: 600; color: var(--gray-700); margin-bottom: 5px; }
+  .form-input { width: 100%; padding: 8px 12px; border: 1px solid var(--gray-300); border-radius: 7px; font-size: 13.5px; color: var(--gray-900); background: var(--white); }
+  .form-input:focus { outline: none; border-color: var(--green-500); box-shadow: 0 0 0 2px var(--green-200); }
+  select.form-input { cursor: pointer; }
+
+  /* ── Tab nav within screen ── */
+  .tab-nav { display: flex; gap: 2px; border-bottom: 2px solid var(--gray-200); margin-bottom: 20px; }
+  .tab-btn { padding: 8px 16px; border: none; background: transparent; font-size: 13.5px; font-weight: 500; color: var(--gray-500); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.12s; }
+  .tab-btn:hover { color: var(--green-700); }
+  .tab-btn.active { color: var(--green-700); border-bottom-color: var(--green-700); font-weight: 700; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* ── Misc utils ── */
+  .flex { display: flex; }
+  .flex-between { display: flex; justify-content: space-between; align-items: center; }
+  .flex-center { display: flex; align-items: center; }
+  .gap-8 { gap: 8px; }
+  .gap-12 { gap: 12px; }
+  .mt-8 { margin-top: 8px; }
+  .mt-16 { margin-top: 16px; }
+  .mt-24 { margin-top: 24px; }
+  .mb-16 { margin-bottom: 16px; }
+  .text-sm { font-size: 12.5px; }
+  .text-muted { color: var(--gray-500); }
+  .fw-700 { font-weight: 700; }
+
+  /* ── Audit log ── */
+  .log-row { font-family: monospace; font-size: 12px; padding: 8px 12px; border-bottom: 1px solid var(--gray-200); display: grid; grid-template-columns: 140px 90px 1fr 120px; gap: 12px; color: var(--gray-700); }
+  .log-row:hover { background: var(--gray-100); }
+  .log-row.log-header { font-weight: 700; background: var(--gray-100); color: var(--gray-500); }
+
+  /* ═══════════════════════════════════════════
+     KONCILE OCR WIZARD STYLES
+  ═══════════════════════════════════════════ */
+  .btn-koncile { background: var(--koncile); color: white; }
+  .btn-koncile:hover { background: #5932a8; }
+
+  /* Step indicator */
+  .kn-steps { display:flex; align-items:center; margin-bottom:24px; background:white; border:1px solid var(--gray-200); border-radius:10px; padding:14px 20px; }
+  .kn-step { display:flex; align-items:center; gap:8px; flex:1; position:relative; }
+  .kn-step+.kn-step::before { content:''; position:absolute; left:-1px; top:50%; transform:translateY(-50%); width:1px; height:28px; background:var(--gray-200); }
+  .kn-step-num { width:24px; height:24px; border-radius:50%; border:2px solid var(--gray-300); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:var(--gray-500); flex-shrink:0; transition:all 0.3s; }
+  .kn-step.done .kn-step-num  { background:var(--green-700); border-color:var(--green-700); color:white; }
+  .kn-step.active .kn-step-num { background:var(--teal); border-color:var(--teal); color:white; }
+  .kn-step-label { font-size:12px; font-weight:600; color:var(--gray-500); }
+  .kn-step.done .kn-step-label { color:var(--green-700); }
+  .kn-step.active .kn-step-label { color:var(--teal); }
+
+  /* Main 2-col layout */
+  .kn-grid { display:grid; grid-template-columns:1fr 360px; gap:20px; align-items:start; }
+
+  /* Doc panel */
+  .kn-doc-panel { background:white; border:1px solid var(--gray-200); border-radius:12px; overflow:hidden; }
+  .kn-panel-header { padding:14px 18px; border-bottom:1px solid var(--gray-200); display:flex; align-items:center; justify-content:space-between; }
+  .kn-panel-title { font-size:13px; font-weight:700; color:var(--gray-900); display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .kn-panel-badge { font-size:10px; font-weight:700; letter-spacing:0.5px; text-transform:uppercase; padding:2px 8px; border-radius:20px; }
+  .kn-badge-koncile { background:var(--koncile-lt); color:var(--koncile); }
+  .kn-badge-green   { background:var(--green-200); color:var(--green-800); }
+
+  /* Grain ticket document */
+  .kn-doc-viewer { position:relative; overflow:hidden; background:#f8f8f6; border-bottom:1px solid var(--gray-200); min-height:340px; }
+  .kn-doc-paper { margin:18px auto; width:88%; max-width:440px; background:white; border-radius:4px; box-shadow:0 2px 12px rgba(0,0,0,0.12); padding:20px 22px; position:relative; overflow:hidden; font-size:11px; line-height:1.6; color:#333; }
+  .kn-doc-logo-row { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px; border-bottom:2px solid #2D6A4F; padding-bottom:8px; }
+  .kn-doc-elevator { font-size:13px; font-weight:800; color:#1B4332; }
+  .kn-doc-type { font-size:10px; letter-spacing:1px; text-transform:uppercase; color:#40916C; font-weight:600; }
+  .kn-doc-ticket { text-align:right; font-size:10px; color:#555; }
+  .kn-doc-ticket strong { font-size:13px; color:#1B4332; display:block; }
+  .kn-doc-grid { display:grid; grid-template-columns:1fr 1fr; gap:5px 12px; margin:8px 0; }
+  .kn-doc-field { display:flex; flex-direction:column; }
+  .kn-doc-field .lbl { font-size:9px; text-transform:uppercase; letter-spacing:0.8px; color:#999; font-weight:600; }
+  .kn-doc-field .val { font-size:11px; font-weight:600; color:#222; border-bottom:1px solid #eee; padding-bottom:2px; }
+  .kn-doc-sep { border:none; border-top:1px dashed #ddd; margin:8px 0; }
+  .kn-doc-total { display:flex; justify-content:space-between; background:#f0faf4; padding:6px 8px; border-radius:4px; margin-top:6px; }
+  .kn-doc-total .lbl { font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; color:#2D6A4F; }
+  .kn-doc-total .val { font-size:13px; font-weight:800; color:#1B4332; }
+  .kn-doc-stamp { position:absolute; bottom:12px; right:12px; border:3px solid #40916C; border-radius:4px; padding:3px 7px; transform:rotate(-8deg); color:#40916C; font-weight:800; font-size:10px; letter-spacing:1px; opacity:0.7; }
+
+  /* Scan animation */
+  .kn-scan-overlay { position:absolute; inset:0; pointer-events:none; opacity:0; transition:opacity 0.3s; background:rgba(108,63,197,0.04); }
+  .kn-scan-overlay.active { opacity:1; }
+  .kn-scan-line { position:absolute; left:0; right:0; height:3px; background:linear-gradient(90deg, transparent 0%, var(--koncile) 20%, rgba(150,100,255,0.9) 50%, var(--koncile) 80%, transparent 100%); box-shadow:0 0 18px 4px rgba(108,63,197,0.45); top:-4px; }
+  .kn-scan-line.scanning { animation:kn-scanDown 2.2s ease-in-out infinite; }
+  @keyframes kn-scanDown { 0%{top:0%} 100%{top:100%} }
+  @keyframes kn-spin { to{transform:rotate(360deg)} }
+
+  /* Progress status bar */
+  .kn-scan-status { padding:10px 18px; font-size:12px; border-top:1px solid var(--gray-200); display:flex; align-items:center; gap:10px; min-height:42px; }
+  .kn-spinner { width:14px; height:14px; border-radius:50%; border:2px solid var(--gray-200); border-top-color:var(--koncile); animation:kn-spin 0.7s linear infinite; flex-shrink:0; }
+  .kn-progress-bar { flex:1; height:4px; background:var(--gray-200); border-radius:2px; overflow:hidden; }
+  .kn-progress-fill { height:100%; background:linear-gradient(90deg, var(--koncile), #9b6ef3); border-radius:2px; width:0%; transition:width 0.4s ease; }
+  .kn-pct { font-size:11px; font-weight:700; color:var(--koncile); min-width:32px; text-align:right; }
+
+  /* Fields panel */
+  .kn-fields-panel { background:white; border:1px solid var(--gray-200); border-radius:12px; overflow:hidden; position:sticky; top:68px; }
+  .kn-field-row { display:flex; align-items:center; gap:10px; padding:10px 16px; border-bottom:1px solid var(--gray-100); opacity:0; transform:translateX(8px); transition:opacity 0.35s ease, transform 0.35s ease; }
+  .kn-field-row.visible { opacity:1; transform:translateX(0); }
+  .kn-field-row:last-child { border-bottom:none; }
+  .kn-field-icon { width:28px; height:28px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0; }
+  .kn-field-info { flex:1; min-width:0; }
+  .kn-field-label { font-size:10.5px; font-weight:600; color:var(--gray-500); text-transform:uppercase; letter-spacing:0.5px; }
+  .kn-field-value { font-size:13px; font-weight:700; color:var(--gray-900); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .kn-field-type { font-size:10px; color:var(--gray-500); margin-top:1px; }
+  .kn-conf-badge { display:flex; align-items:center; gap:4px; flex-shrink:0; font-size:11px; font-weight:700; padding:3px 7px; border-radius:20px; }
+  .kn-conf-high   { background:var(--green-200); color:var(--green-800); }
+  .kn-conf-medium { background:var(--amber-light); color:#92400E; }
+  .kn-conf-low    { background:var(--red-light); color:var(--red); }
+  .kn-conf-dot { width:6px; height:6px; border-radius:50%; }
+  .kn-conf-high .kn-conf-dot   { background:var(--green-700); }
+  .kn-conf-medium .kn-conf-dot { background:var(--amber); }
+  .kn-conf-low .kn-conf-dot    { background:var(--red); }
+
+  /* Upload zone (step 1) */
+  .kn-upload-zone { margin:22px; border:2px dashed var(--gray-300); border-radius:10px; padding:28px; text-align:center; cursor:pointer; transition:all 0.2s; }
+  .kn-upload-zone:hover { border-color:var(--teal); background:var(--teal-lt); }
+  .kn-upload-icon { font-size:36px; margin-bottom:10px; }
+  .kn-upload-title { font-size:14px; font-weight:700; color:var(--gray-900); margin-bottom:4px; }
+  .kn-upload-sub { font-size:12px; color:var(--gray-500); }
+  .kn-upload-types { display:flex; gap:6px; justify-content:center; margin-top:12px; flex-wrap:wrap; }
+  .kn-type-pill { font-size:10px; font-weight:600; padding:2px 8px; border-radius:20px; background:var(--gray-100); color:var(--gray-500); border:1px solid var(--gray-200); }
+  .kn-file-row { display:none; margin:0 22px 0; padding:12px 14px; background:var(--green-100); border:1px solid var(--green-200); border-radius:8px; align-items:center; gap:10px; }
+  .kn-file-row.show { display:flex; }
+
+  /* Template selector */
+  .kn-template-section { margin:14px 22px 0; }
+  .kn-template-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; color:var(--gray-500); margin-bottom:8px; }
+  .kn-template-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .kn-template-card { border:1.5px solid var(--gray-200); border-radius:8px; padding:10px 12px; cursor:pointer; transition:all 0.15s; display:flex; align-items:center; gap:8px; }
+  .kn-template-card:hover { border-color:var(--teal); background:var(--teal-lt); }
+  .kn-template-card.selected { border-color:var(--teal); background:var(--teal-lt); }
+  .kn-template-card .t-icon { font-size:18px; }
+  .kn-template-card .t-name { font-size:12px; font-weight:700; color:var(--gray-900); }
+  .kn-template-card .t-fields { font-size:10.5px; color:var(--gray-500); }
+
+  /* Action bar */
+  .kn-action-bar { padding:14px 18px; border-top:1px solid var(--gray-200); display:flex; gap:10px; justify-content:flex-end; }
+
+  /* Mapping rows (step 4) */
+  .kn-mapping-row { display:flex; align-items:center; gap:10px; padding:10px 18px; border-bottom:1px solid var(--gray-100); }
+  .kn-mapping-row:last-child { border-bottom:none; }
+  .kn-mapping-tag { font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px; white-space:nowrap; }
+  .kn-tag-production { background:#dcfce7; color:#15803d; }
+  .kn-tag-sales      { background:#fef9c3; color:#854d0e; }
+  .kn-tag-spatial    { background:#dbeafe; color:#1e40af; }
+  .kn-tag-logistics  { background:#f3e8ff; color:#6b21a8; }
+  .kn-mapping-field { font-size:12px; font-weight:600; color:var(--gray-700); }
+  .kn-mapping-value { font-size:12px; color:var(--gray-500); margin-left:auto; }
+
+  /* Success banner */
+  .kn-success-banner { display:none; margin:16px 18px 8px; padding:14px 16px; background:var(--green-100); border:1px solid var(--green-500); border-radius:10px; align-items:center; gap:12px; }
+  .kn-success-banner.show { display:flex; }
+  .kn-success-icon { font-size:22px; }
+  .kn-success-text .title { font-size:14px; font-weight:700; color:var(--green-800); }
+  .kn-success-text .sub   { font-size:12px; color:var(--green-700); margin-top:2px; }
+
+  /* Koncile branding strip */
+  .kn-strip { background:var(--koncile-lt); border-top:1px solid #D8B4FE; padding:7px 18px; display:flex; align-items:center; gap:8px; font-size:11px; color:var(--koncile); font-weight:600; }
+  .kn-logo { font-size:13px; font-weight:800; letter-spacing:-0.3px; }
+  .kn-powered { color:var(--gray-500); font-weight:400; }
+
+  /* Flag row */
+  .kn-flag-row { margin:0 16px 10px; padding:8px 12px; border-radius:8px; background:var(--amber-light); border:1px solid #FDE68A; font-size:12px; color:#92400E; display:none; align-items:center; gap:8px; }
+  .kn-flag-row.show { display:flex; }
+
+  /* Consent toggles */
+  .kn-consent-preview { display:none; margin:0 18px 14px; border:1px solid var(--gray-200); border-radius:8px; overflow:hidden; }
+  .kn-consent-preview.show { display:block; }
+  .kn-consent-header { background:var(--gray-100); padding:8px 12px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; color:var(--gray-500); }
+  .kn-consent-item { display:flex; align-items:center; justify-content:space-between; padding:7px 12px; border-top:1px solid var(--gray-200); font-size:12px; }
+  .kn-consent-recipient { display:flex; align-items:center; gap:7px; }
+  .kn-consent-dot { width:8px; height:8px; border-radius:50%; }
+  .kn-ctoggle { width:32px; height:18px; border-radius:9px; background:var(--gray-300); cursor:pointer; position:relative; transition:background 0.2s; flex-shrink:0; }
+  .kn-ctoggle.on { background:var(--green-700); }
+  .kn-ctoggle::after { content:''; position:absolute; top:2px; left:2px; width:14px; height:14px; border-radius:50%; background:white; transition:left 0.2s; }
+  .kn-ctoggle.on::after { left:16px; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ PORTAL BAR ═══════════════ -->
+<div class="portal-bar">
+  <div class="brand">
+    <!-- Fluid Scientific wordmark, white version -->
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 200" aria-label="Fluid Scientific"><path d="m15.37,51.18c0-27.42,16.77-41.23,41.03-41.23,22.08,0,37.79,11.6,40.44,34.65.44,3.8-2.45,7.18-6.28,7.18h-.38c-3.28,0-5.91-2.51-6.3-5.77-1.97-16.31-12.57-23.82-27.48-23.82-16.77,0-27.82,9.27-27.82,29v17.56h44.15c3.32,0,6.02,2.69,6.02,6.02h0c0,3.32-2.69,6.02-6.02,6.02H28.59v65.48c0,3.49-2.83,6.32-6.32,6.32h-.57c-3.49,0-6.32-2.83-6.32-6.32V51.18ZM116.78,12.51h.57c3.49,0,6.32,2.83,6.32,6.32v127.42c0,3.49-2.83,6.32-6.32,6.32h-.57c-3.49,0-6.32-2.83-6.32-6.32V18.84c0-3.49,2.83-6.32,6.32-6.32Z"/><path d="m146.76,106.02v-44.29c0-3.65,2.96-6.61,6.61-6.61h0c3.65,0,6.61,2.96,6.61,6.61v44.29c0,23.87,13.81,36.89,34.92,36.89s34.92-13.02,34.92-36.89v-44.29c0-3.65,2.96-6.61,6.61-6.61h0c3.65,0,6.61,2.96,6.61,6.61v44.29c0,32.35-19.33,49.12-48.14,49.12s-48.13-16.77-48.13-49.12Z"/><path d="m272.61,12.83c-5.72,0-10.06,4.34-10.06,10.06s4.34,10.06,10.06,10.06,10.06-4.34,10.06-10.06-4.34-10.06-10.06-10.06Z"/><path d="m272.71,55.12c-3.65,0-6.61,2.96-6.61,6.61v84.24c0,3.65,2.96,6.61,6.61,6.61s6.61-2.96,6.61-6.61V61.73c0-3.65-2.96-6.61-6.61-6.61Z"/><path d="m404.63,17.12c0-3.57-2.89-6.46-6.46-6.46s-6.46,2.89-6.46,6.46v50.03c-9.81-11.37-24.31-18.55-40.36-18.55-29.37,0-53.27,23.9-53.27,53.27s23.9,53.27,53.27,53.27,53.27-23.9,53.27-53.27c0-.21-.02-.41-.02-.61,0-.07.02-.13.02-.19V17.12Zm-53.27,125.1c-22.25,0-40.36-18.1-40.36-40.36s18.1-40.36,40.36-40.36,38.94,16.59,40.27,37.78c.06.85.08,1.71.08,2.57,0,22.25-18.1,40.36-40.36,40.36Z"/><path d="m205.3,190.05c-1.35,0-2.56-.17-3.61-.5-1.05-.33-2.06-.9-3.02-1.69-.21-.15-.36-.33-.46-.53-.1-.2-.16-.4-.16-.61,0-.33.13-.62.39-.88.26-.26.59-.39.99-.39.3,0,.58.09.84.28.71.6,1.46,1.06,2.24,1.37.78.31,1.7.46,2.75.46.75,0,1.44-.11,2.07-.33.63-.22,1.13-.52,1.51-.9.38-.38.56-.82.56-1.32-.02-.62-.22-1.13-.59-1.52-.38-.4-.93-.73-1.65-1.01-.72-.27-1.59-.5-2.61-.67-.94-.17-1.79-.4-2.54-.67-.75-.28-1.39-.62-1.9-1.04-.52-.42-.92-.92-1.2-1.51-.28-.58-.42-1.26-.42-2.01,0-1.05.3-1.96.9-2.72.6-.76,1.42-1.35,2.45-1.77,1.03-.41,2.2-.62,3.5-.62,1.18,0,2.29.17,3.33.5,1.03.33,1.87.79,2.51,1.35.45.36.68.75.68,1.16,0,.33-.14.62-.41.88-.27.26-.59.39-.94.39-.26,0-.49-.07-.68-.21-.3-.29-.71-.55-1.21-.79-.51-.23-1.05-.43-1.62-.58-.57-.15-1.12-.23-1.65-.23-.84,0-1.57.11-2.17.32-.6.21-1.06.51-1.38.88s-.48.81-.48,1.33c0,.58.18,1.06.55,1.43.37.37.88.67,1.54.9.66.23,1.41.44,2.25.63,1.03.21,1.96.44,2.78.7.82.26,1.51.59,2.07.99s1,.91,1.3,1.51c.3.6.45,1.35.45,2.24,0,1.03-.32,1.93-.96,2.71-.64.77-1.48,1.38-2.52,1.81-1.04.43-2.2.64-3.48.64Z"/><path d="m236.78,172.77c.41.19.65.48.72.88s-.05.76-.35,1.08c-.21.28-.47.43-.79.45-.32.03-.65-.04-.99-.19-.53-.26-1.09-.46-1.71-.62-.61-.15-1.24-.23-1.9-.23-1.07,0-2.03.16-2.89.49-.85.33-1.59.78-2.21,1.37-.62.58-1.1,1.28-1.42,2.09-.33.81-.49,1.7-.49,2.68,0,1.08.18,2.04.54,2.88.36.83.85,1.54,1.48,2.12s1.37,1.01,2.23,1.29c.85.28,1.78.43,2.78.43.64,0,1.26-.07,1.88-.21.61-.14,1.19-.34,1.73-.62.34-.15.67-.21.99-.17s.59.19.82.45c.3.36.41.73.34,1.11-.08.38-.31.65-.71.83-.47.24-.99.45-1.55.63-.56.18-1.14.32-1.72.41s-1.17.14-1.78.14c-1.35,0-2.63-.21-3.85-.62-1.21-.41-2.28-1.01-3.21-1.81-.93-.79-1.67-1.76-2.21-2.92-.54-1.15-.82-2.47-.82-3.95,0-1.32.25-2.55.76-3.66.51-1.12,1.22-2.09,2.13-2.92.91-.83,1.98-1.47,3.2-1.92,1.22-.46,2.56-.68,4-.68.9,0,1.78.1,2.63.31.86.21,1.65.5,2.38.88Z"/><path d="m250.7,188.48c-.02.38-.17.69-.46.94-.29.25-.63.37-1.03.37-.45,0-.81-.12-1.07-.37-.26-.25-.39-.56-.39-.94v-15.43c0-.38.14-.69.42-.94s.65-.37,1.1-.37c.38,0,.71.12,1,.37.29.25.44.56.44.94v15.43Z"/><path d="m263.75,171.74h9.72c.41,0,.76.12,1.03.36.27.24.41.54.41.9s-.14.65-.41.88c-.27.22-.62.34-1.03.34h-8.48l.28-.44v5.78l-.25-.26h7.19c.41,0,.76.12,1.03.36.27.24.41.55.41.93s-.14.65-.41.88c-.27.22-.62.33-1.03.33h-7.13l.2-.23v5.96l-.2-.21h8.4c.41,0,.76.12,1.03.37.27.25.41.54.41.86,0,.36-.14.66-.41.89-.27.23-.62.35-1.03.35h-9.72c-.41,0-.76-.12-1.03-.37-.27-.25-.41-.56-.41-.94v-15.43c0-.38.14-.69.41-.94.27-.25.62-.37,1.03-.37Z"/><path d="m300.25,171.74c.38,0,.68.12.92.35.23.23.35.52.35.86v15.53c0,.38-.14.69-.41.94-.27.25-.62.37-1.03.37-.21,0-.41-.03-.62-.1-.21-.07-.37-.16-.48-.28l-11.58-13.72.65-.36v13.29c0,.33-.12.61-.37.84-.24.23-.55.35-.93.35-.39,0-.71-.12-.94-.35-.23-.23-.35-.51-.35-.84v-15.56c0-.38.14-.69.41-.94.27-.25.62-.37,1.03-.37.21,0,.43.04.66.12.23.08.41.19.52.35l11.3,13.47-.42.36v-13.08c0-.34.12-.63.35-.86.24-.23.55-.35.94-.35Z"/><path d="m313.18,174.22c-.39,0-.73-.12-1.01-.35s-.42-.53-.42-.89.14-.68.42-.9c.28-.22.62-.33,1.01-.33h12.79c.41,0,.76.12,1.03.35.27.23.41.53.41.89s-.14.68-.41.9c-.27.22-.62.34-1.03.34h-12.79Zm6.4,15.58c-.45,0-.82-.12-1.1-.37-.28-.25-.42-.56-.42-.94v-15.45h3.04v15.45c0,.38-.15.69-.44.94-.29.25-.65.37-1.08.37Z"/><path d="m340.6,188.48c-.02.38-.17.69-.46.94-.29.25-.63.37-1.03.37-.45,0-.81-.12-1.07-.37-.26-.25-.39-.56-.39-.94v-15.43c0-.38.14-.69.42-.94.28-.25.65-.37,1.1-.37.38,0,.71.12,1,.37.29.25.44.56.44.94v15.43Z"/><path d="m353.7,189.8c-.45,0-.81-.12-1.08-.37-.27-.25-.41-.56-.41-.94v-15.43c0-.38.14-.69.41-.94s.62-.37,1.03-.37h9.53c.39,0,.73.12,1.01.36.28.24.42.54.42.9,0,.33-.14.61-.42.85-.28.24-.62.36-1.01.36h-8.23l.2-.26v5.75l-.17-.31h6.93c.39,0,.73.12,1.01.36.28.24.42.55.42.93,0,.31-.14.59-.42.84-.28.25-.62.37-1.01.37h-6.99l.23-.23v6.81c0,.38-.14.69-.42.94-.28.25-.62.37-1.01.37Z"/><path d="m378.08,188.48c-.02.38-.17.69-.47.94-.29.25-.63.37-1.03.37-.45,0-.81-.12-1.07-.37-.26-.25-.39-.56-.39-.94v-15.43c0-.38.14-.69.42-.94.28-.25.65-.37,1.1-.37.38,0,.71.12,1,.37s.44.56.44.94v15.43Z"/><path d="m403.7,172.77c.41.19.65.48.72.88.07.4-.05.76-.35,1.08-.21.28-.47.43-.79.45-.32.03-.65-.04-.99-.19-.53-.26-1.09-.46-1.71-.62-.61-.15-1.25-.23-1.9-.23-1.07,0-2.03.16-2.89.49-.86.33-1.59.78-2.21,1.37-.62.58-1.09,1.28-1.42,2.09-.33.81-.49,1.7-.49,2.68,0,1.08.18,2.04.54,2.88.36.83.85,1.54,1.48,2.12.63.58,1.37,1.01,2.23,1.29.85.28,1.78.43,2.78.43.64,0,1.26-.07,1.87-.21.61-.14,1.19-.34,1.73-.62.34-.15.67-.21.99-.17.32.04.59.19.82.45.3.36.41.73.34,1.11-.08.38-.31.65-.7.83-.47.24-.99.45-1.55.63-.56.18-1.14.32-1.72.41s-1.17.14-1.78.14c-1.35,0-2.63-.21-3.85-.62-1.21-.41-2.28-1.01-3.21-1.81-.93-.79-1.67-1.76-2.21-2.92-.54-1.15-.82-2.47-.82-3.95,0-1.32.25-2.55.76-3.66.51-1.12,1.22-2.09,2.13-2.92.91-.83,1.98-1.47,3.2-1.92,1.22-.46,2.55-.68,4-.68.9,0,1.78.1,2.63.31.85.21,1.65.5,2.38.88Z"/></svg>
+    <span class="sads-tag">SADS</span>
+  </div>
+  <button class="portal-tab active" onclick="switchPortal('producer')">🌾 Producer Portal</button>
+  <button class="portal-tab" onclick="switchPortal('ocr')">📄 OCR Import</button>
+  <button class="portal-tab" onclick="switchPortal('recipient')">📊 Recipient Portal</button>
+  <button class="portal-tab admin-tab" onclick="switchPortal('admin')" style="margin-left:auto">⚙️ Admin</button>
+  <button onclick="showLogin()" style="margin-left:8px;padding:5px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.25);background:transparent;color:rgba(255,255,255,0.7);font-size:12px;cursor:pointer;" title="Back to login">← Sign out</button>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PRODUCER PORTAL
+═══════════════════════════════════════════ -->
+<div id="portal-producer" class="shell">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-section">Overview</div>
+    <div class="nav-item active" onclick="showScreen('p-dashboard', this)">
+      <span class="icon">🏠</span> Dashboard
+    </div>
+    <div class="sidebar-section">My Farm</div>
+    <div class="nav-item" onclick="showScreen('p-fields', this)">
+      <span class="icon">🗺️</span> Fields & Parcels
+    </div>
+    <div class="nav-item" onclick="showScreen('p-records', this)">
+      <span class="icon">📋</span> Field Records
+    </div>
+    <div class="nav-item" onclick="showScreen('p-production', this)">
+      <span class="icon">🌾</span> Production
+    </div>
+    <div class="sidebar-section">Data Governance</div>
+    <div class="nav-item" onclick="showScreen('p-consent', this)">
+      <span class="icon">🔐</span> Consent Manager
+    </div>
+    <div class="nav-item" onclick="showScreen('p-sharing', this)">
+      <span class="icon">🤝</span> Sharing History
+    </div>
+    <div class="sidebar-section">Documents</div>
+    <div class="nav-item" onclick="switchPortal('ocr'); showScreen('o-upload', null)">
+      <span class="icon">📤</span> Import Documents
+    </div>
+
+    <div style="flex:1"></div>
+    <div class="sidebar-user">
+      <div class="avatar-sm">JM</div>
+      <div class="user-info">
+        <div class="user-name">Jake Morden</div>
+        <div class="user-role">Producer</div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main content -->
+  <div class="main">
+
+    <!-- Dashboard -->
+    <div id="p-dashboard" class="screen active">
+      <div class="page-header">
+        <div class="page-title">Good morning, Jake 👋</div>
+        <div class="page-sub">Fluid Scientific · Sovereign Agricultural Data System · Crop Year 2025</div>
+      </div>
+      <div class="alert alert-info">
+        ℹ️ <span><strong>3 documents</strong> were imported yesterday via OCR and are awaiting your review before data is finalized.</span>
+        <button class="btn btn-sm btn-ghost" style="margin-left:auto;white-space:nowrap" onclick="switchPortal('ocr'); showScreen('o-review', null)">Review Now →</button>
+      </div>
+      <div class="grid-4 mb-16">
+        <div class="stat-card">
+          <div class="stat-label">Total Area</div>
+          <div class="stat-value">2,840</div>
+          <div class="stat-unit">acres · 12 parcels</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Crop Year Revenue</div>
+          <div class="stat-value">$618K</div>
+          <div class="stat-unit stat-change up">▲ 8% vs 2024</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Input Costs</div>
+          <div class="stat-value">$214K</div>
+          <div class="stat-unit stat-change neutral">— similar to 2024</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Data Completeness</div>
+          <div class="stat-value">84%</div>
+          <div class="stat-unit">across all fields</div>
+          <div class="progress-bar mt-8"><div class="progress-fill" style="width:84%"></div></div>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Recent Activity</span>
+            <span class="text-sm text-muted">Last 7 days</span>
+          </div>
+          <div class="card-body">
+            <div class="activity-item">
+              <div class="activity-dot dot-green"></div>
+              <div><div class="activity-text">Fertilizer invoice <strong>Agrium_Oct14.pdf</strong> imported via OCR — 6 fields extracted</div><div class="activity-time">Today, 9:14 AM</div></div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot dot-blue"></div>
+              <div><div class="activity-text"><strong>AAFC AgriStability</strong> accessed aggregate yield data for SK Region 6</div><div class="activity-time">Yesterday, 3:02 PM</div></div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot dot-green"></div>
+              <div><div class="activity-text">Harvest record added for <strong>NW-12 (canola)</strong> — 52 bu/ac yield</div><div class="activity-time">Oct 18, 11:30 AM</div></div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot dot-amber"></div>
+              <div><div class="activity-text">Consent request from <strong>Saskatchewan Canola Development</strong> — pending your review</div><div class="activity-time">Oct 16, 8:00 AM</div></div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot dot-green"></div>
+              <div><div class="activity-text">Soil test results uploaded for <strong>SE-08</strong> — pH 7.2, OM 4.1%</div><div class="activity-time">Oct 14, 2:15 PM</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Data Sharing Active</span>
+            <button class="btn btn-sm btn-secondary" onclick="showScreen('p-consent', document.querySelector('[onclick*=p-consent]'))">Manage →</button>
+          </div>
+          <div class="card-body">
+            <table>
+              <thead><tr><th>Recipient</th><th>Tier</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td>AAFC AgriStability</td><td><span class="tier tier-1">T1</span></td><td><span class="badge badge-green">● Active</span></td></tr>
+                <tr><td>SK Canola Dev. Commission</td><td><span class="tier tier-2">T2</span></td><td><span class="badge badge-amber">⏳ Pending</span></td></tr>
+                <tr><td>Ag Canada Research</td><td><span class="tier tier-1">T1</span></td><td><span class="badge badge-green">● Active</span></td></tr>
+                <tr><td>Crop Insurance Board</td><td><span class="tier tier-3">T3</span></td><td><span class="badge badge-green">● Active</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fields & Parcels -->
+    <div id="p-fields" class="screen">
+      <div class="page-header flex-between">
+        <div>
+          <div class="page-title">Fields & Parcels</div>
+          <div class="page-sub">12 parcels · 2,840 total acres</div>
+        </div>
+        <div class="flex gap-8">
+          <button class="btn btn-secondary">⬇ Export KML</button>
+          <button class="btn btn-primary">＋ Add Parcel</button>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Parcel Map</span><span class="text-sm text-muted">2025 Crop Year</span></div>
+          <div class="card-body" style="padding:12px">
+            <div class="map-placeholder">
+              <!-- Simulated field polygons -->
+              <div class="map-field" style="left:8%;top:10%;width:26%;height:30%" title="NW-12">NW-12<br/>380 ac</div>
+              <div class="map-field selected" style="left:36%;top:10%;width:20%;height:28%" title="NE-12">NE-12<br/>290 ac</div>
+              <div class="map-field" style="left:58%;top:10%;width:32%;height:26%" title="SW-01">SW-01<br/>440 ac</div>
+              <div class="map-field" style="left:8%;top:44%;width:24%;height:32%" title="SE-08">SE-08<br/>310 ac</div>
+              <div class="map-field" style="left:34%;top:42%;width:22%;height:30%" title="NW-24">NW-24<br/>260 ac</div>
+              <div class="map-field" style="left:58%;top:40%;width:30%;height:34%" title="NE-18">NE-18<br/>420 ac</div>
+              <div class="map-label" style="right:12px;bottom:12px">📍 RM of Elrose No. 100</div>
+            </div>
+            <div class="text-sm text-muted mt-8" style="text-align:center">Click a field to view details</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Parcel List</span>
+            <select class="form-input" style="width:auto;font-size:12px;padding:4px 8px"><option>All crops</option><option>Canola</option><option>Wheat</option><option>Lentils</option></select>
+          </div>
+          <div style="overflow:auto;max-height:360px">
+            <table>
+              <thead><tr><th>Parcel ID</th><th>Acres</th><th>Crop</th><th>Soil pH</th><th>Data</th></tr></thead>
+              <tbody>
+                <tr><td><strong>NW-12</strong></td><td>380</td><td>Canola</td><td>7.1</td><td><span class="badge badge-green">92%</span></td></tr>
+                <tr style="background:var(--green-100)"><td><strong>NE-12</strong> ✓</td><td>290</td><td>Wheat</td><td>6.9</td><td><span class="badge badge-green">88%</span></td></tr>
+                <tr><td><strong>SW-01</strong></td><td>440</td><td>Canola</td><td>7.4</td><td><span class="badge badge-green">95%</span></td></tr>
+                <tr><td><strong>SE-08</strong></td><td>310</td><td>Lentils</td><td>7.2</td><td><span class="badge badge-amber">71%</span></td></tr>
+                <tr><td><strong>NW-24</strong></td><td>260</td><td>Wheat</td><td>6.7</td><td><span class="badge badge-amber">65%</span></td></tr>
+                <tr><td><strong>NE-18</strong></td><td>420</td><td>Canola</td><td>7.0</td><td><span class="badge badge-green">90%</span></td></tr>
+                <tr><td><strong>SW-14</strong></td><td>195</td><td>Fallow</td><td>—</td><td><span class="badge badge-red">38%</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Field Records -->
+    <div id="p-records" class="screen">
+      <div class="page-header flex-between">
+        <div>
+          <div class="page-title">Field Records</div>
+          <div class="page-sub">Inputs, applications, and operations · 2025</div>
+        </div>
+        <div class="flex gap-8">
+          <button class="btn btn-secondary">📤 Import via OCR</button>
+          <button class="btn btn-primary">＋ Add Record</button>
+        </div>
+      </div>
+      <div class="tab-nav">
+        <button class="tab-btn active" onclick="switchTab(this, 'tab-inputs')">Inputs</button>
+        <button class="tab-btn" onclick="switchTab(this, 'tab-spray')">Spray Records</button>
+        <button class="tab-btn" onclick="switchTab(this, 'tab-tillage')">Tillage</button>
+      </div>
+      <div id="tab-inputs" class="tab-content active">
+        <div class="card">
+          <div class="card-header flex-between">
+            <span class="card-title">Input Records (Fertilizer & Crop Protection)</span>
+            <div class="flex gap-8">
+              <select class="form-input" style="width:auto;font-size:12px;padding:4px 8px"><option>All parcels</option><option>NW-12</option><option>SW-01</option></select>
+              <select class="form-input" style="width:auto;font-size:12px;padding:4px 8px"><option>All inputs</option><option>Fertilizer</option><option>Herbicide</option><option>Fungicide</option></select>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>Date</th><th>Parcel</th><th>Product</th><th>Category</th><th>Rate</th><th>Cost (CAD)</th><th>Source</th><th>Tier</th></tr></thead>
+            <tbody>
+              <tr><td>Apr 28</td><td>NW-12</td><td>46-0-0 Urea</td><td><span class="badge badge-green">Fertilizer</span></td><td>150 lb/ac</td><td>$18,240</td><td><span class="badge badge-blue">OCR</span></td><td><span class="tier tier-3">T3</span></td></tr>
+              <tr><td>Apr 28</td><td>SW-01</td><td>46-0-0 Urea</td><td><span class="badge badge-green">Fertilizer</span></td><td>150 lb/ac</td><td>$26,400</td><td><span class="badge badge-blue">OCR</span></td><td><span class="tier tier-3">T3</span></td></tr>
+              <tr><td>May 14</td><td>NW-12</td><td>Roundup WeatherMax</td><td><span class="badge badge-amber">Herbicide</span></td><td>0.67 L/ac</td><td>$4,180</td><td><span class="badge badge-blue">OCR</span></td><td><span class="tier tier-3">T3</span></td></tr>
+              <tr><td>Jun 22</td><td>NE-12</td><td>MAP 11-52-0</td><td><span class="badge badge-green">Fertilizer</span></td><td>80 lb/ac</td><td>$9,600</td><td>✏️ Manual</td><td><span class="tier tier-3">T3</span></td></tr>
+              <tr><td>Jul 05</td><td>SW-01</td><td>Prosaro 480 EC</td><td><span class="badge badge-amber">Fungicide</span></td><td>0.31 L/ac</td><td>$6,270</td><td>✏️ Manual</td><td><span class="tier tier-3">T3</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div id="tab-spray" class="tab-content">
+        <div class="card"><div class="card-body"><p class="text-muted">Spray records would appear here.</p></div></div>
+      </div>
+      <div id="tab-tillage" class="tab-content">
+        <div class="card"><div class="card-body"><p class="text-muted">Tillage records would appear here.</p></div></div>
+      </div>
+    </div>
+
+    <!-- Production -->
+    <div id="p-production" class="screen">
+      <div class="page-header flex-between">
+        <div><div class="page-title">Production Records</div><div class="page-sub">Harvest results · 2025 crop year</div></div>
+        <button class="btn btn-primary">＋ Add Harvest</button>
+      </div>
+      <div class="grid-4 mb-16">
+        <div class="stat-card"><div class="stat-label">Canola Yield</div><div class="stat-value">50</div><div class="stat-unit">bu/ac avg · 3.35 mt/ha</div></div>
+        <div class="stat-card"><div class="stat-label">Wheat Yield</div><div class="stat-value">62</div><div class="stat-unit">bu/ac avg · 4.16 mt/ha</div></div>
+        <div class="stat-card"><div class="stat-label">Total Production</div><div class="stat-value">94K</div><div class="stat-unit">bu all commodities</div></div>
+        <div class="stat-card"><div class="stat-label">Grain Revenue</div><div class="stat-value">$618K</div><div class="stat-unit">all commodities</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Harvest Records</span></div>
+        <table>
+          <thead><tr><th>Parcel</th><th>Commodity</th><th>Variety</th><th>Gross Yield</th><th>Moisture %</th><th>Grade</th><th>Price/bu</th><th>Revenue</th><th>Buyer</th></tr></thead>
+          <tbody>
+            <tr><td>NW-12</td><td>Canola</td><td>InVigor L233P</td><td>52 bu/ac</td><td>8.4%</td><td>No. 1</td><td>$11.80</td><td>$23,327</td><td>Richardson</td></tr>
+            <tr><td>SW-01</td><td>Canola</td><td>InVigor L233P</td><td>48 bu/ac</td><td>9.1%</td><td>No. 1</td><td>$11.80</td><td>$24,883</td><td>Richardson</td></tr>
+            <tr><td>NE-12</td><td>CWRS Wheat</td><td>AAC Brandon</td><td>65 bu/ac</td><td>13.5%</td><td>1CWRS</td><td>$7.40</td><td>$13,978</td><td>Viterra</td></tr>
+            <tr><td>NW-24</td><td>CWRS Wheat</td><td>AAC Brandon</td><td>59 bu/ac</td><td>13.9%</td><td>1CWRS</td><td>$7.40</td><td>$11,362</td><td>Viterra</td></tr>
+            <tr><td>SE-08</td><td>Red Lentils</td><td>CDC Maxim</td><td>1,240 lb/ac</td><td>12.1%</td><td>Fancy</td><td>$0.38/lb</td><td>$14,601</td><td>AGT Foods</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Consent Manager -->
+    <div id="p-consent" class="screen">
+      <div class="page-header">
+        <div class="page-title">Consent Manager</div>
+        <div class="page-sub">Control what data you share, with whom, and at what sensitivity level</div>
+      </div>
+      <div class="alert alert-warn">
+        ⚠️ <span><strong>SK Canola Development Commission</strong> is requesting access to Tier 2 input cost data. <a href="#" style="color:#92400E;font-weight:700">Review request →</a></span>
+      </div>
+      <div class="grid-2">
+        <div>
+          <div class="consent-tier">
+            <div class="consent-tier-header">
+              <span class="tier tier-1">Tier 1</span>
+              <span style="font-weight:600;font-size:13.5px">Aggregate / Anonymized</span>
+              <span class="badge badge-green" style="margin-left:auto">3 active</span>
+            </div>
+            <div class="consent-tier-body">
+              <div class="toggle-row" style="padding:10px 16px">
+                <div><div class="toggle-label">AAFC AgriStability Program</div><div class="toggle-desc">Regional yield aggregates only · min. 5 producers/cell</div></div>
+                <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+              </div>
+              <div class="toggle-row" style="padding:10px 16px">
+                <div><div class="toggle-label">Ag Canada Public Research</div><div class="toggle-desc">Anonymized crop performance data</div></div>
+                <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+              </div>
+              <div class="toggle-row" style="padding:10px 16px">
+                <div><div class="toggle-label">Statistics Canada Farm Survey</div><div class="toggle-desc">Annual aggregate production data</div></div>
+                <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+              </div>
+            </div>
+          </div>
+          <div class="consent-tier">
+            <div class="consent-tier-header">
+              <span class="tier tier-2">Tier 2</span>
+              <span style="font-weight:600;font-size:13.5px">Field-Level (Non-Financial)</span>
+              <span class="badge badge-amber" style="margin-left:auto">1 pending</span>
+            </div>
+            <div class="consent-tier-body">
+              <div class="toggle-row" style="padding:10px 16px">
+                <div><div class="toggle-label">SK Canola Dev. Commission</div><div class="toggle-desc">Variety performance, yield by soil zone — ⏳ pending consent</div></div>
+                <label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label>
+              </div>
+            </div>
+          </div>
+          <div class="consent-tier">
+            <div class="consent-tier-header">
+              <span class="tier tier-3">Tier 3</span>
+              <span style="font-weight:600;font-size:13.5px">Financial / Operational</span>
+              <span class="badge badge-green" style="margin-left:auto">1 active</span>
+            </div>
+            <div class="consent-tier-body">
+              <div class="toggle-row" style="padding:10px 16px">
+                <div><div class="toggle-label">Crop Insurance Board of SK</div><div class="toggle-desc">Input costs, yield records, insurance claims</div></div>
+                <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">Sensitivity Tier Reference</span></div>
+            <div class="card-body">
+              <table>
+                <thead><tr><th>Tier</th><th>What it includes</th></tr></thead>
+                <tbody>
+                  <tr><td><span class="tier tier-0">T0 Public</span></td><td>Province, crop type, general region</td></tr>
+                  <tr><td><span class="tier tier-1">T1 Aggregate</span></td><td>Anonymized regional averages (n≥5)</td></tr>
+                  <tr><td><span class="tier tier-2">T2 Field</span></td><td>Parcel-level yield, variety, soil type</td></tr>
+                  <tr><td><span class="tier tier-3">T3 Financial</span></td><td>Input costs, prices, revenue</td></tr>
+                  <tr><td><span class="tier tier-4">T4 Private</span></td><td>Legal ID, PII, banking — never shared</td></tr>
+                </tbody>
+              </table>
+              <div class="alert alert-success mt-16">
+                ✅ Your Tier 4 (private identity) data is <strong>never shared</strong> with any recipient, including government agencies.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sharing History -->
+    <div id="p-sharing" class="screen">
+      <div class="page-header">
+        <div class="page-title">Sharing History</div>
+        <div class="page-sub">Immutable audit log of all data access events</div>
+      </div>
+      <div class="card">
+        <div class="card-header flex-between">
+          <span class="card-title">Access Log</span>
+          <div class="flex gap-8">
+            <select class="form-input" style="width:auto;font-size:12px;padding:4px 8px"><option>All recipients</option><option>AAFC</option><option>Crop Insurance</option></select>
+            <button class="btn btn-sm btn-secondary">⬇ Export CSV</button>
+          </div>
+        </div>
+        <div class="log-row log-header">
+          <span>TIMESTAMP</span><span>RECIPIENT</span><span>QUERY / FIELDS</span><span>TIER / RESULT</span>
+        </div>
+        <div class="log-row"><span>2025-10-19 15:02</span><span>AAFC</span><span>GET /aggregate/yield?region=SK-06&crop=canola&year=2025</span><span><span class="tier tier-1">T1</span> 200 OK</span></div>
+        <div class="log-row"><span>2025-10-17 09:41</span><span>Crop Ins. Board</span><span>GET /producer/{id}/input_records?year=2025&type=fertilizer</span><span><span class="tier tier-3">T3</span> 200 OK</span></div>
+        <div class="log-row"><span>2025-10-16 14:19</span><span>Ag Canada</span><span>GET /aggregate/soil_health?province=SK&year=2025</span><span><span class="tier tier-1">T1</span> 200 OK</span></div>
+        <div class="log-row"><span>2025-10-15 11:08</span><span>SK Canola Dev.</span><span>GET /producer/{id}/parcels — <strong>DENIED</strong> (no active consent)</span><span><span class="tier tier-2">T2</span> 403</span></div>
+        <div class="log-row"><span>2025-10-12 16:55</span><span>Stats Canada</span><span>GET /aggregate/production?province=SK&year=2025</span><span><span class="tier tier-1">T1</span> 200 OK</span></div>
+        <div class="log-row"><span>2025-10-08 10:22</span><span>Crop Ins. Board</span><span>GET /producer/{id}/production_records?year=2025</span><span><span class="tier tier-3">T3</span> 200 OK</span></div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /portal-producer -->
+
+
+<!-- ═══════════════════════════════════════════
+     OCR IMPORT PORTAL
+═══════════════════════════════════════════ -->
+<div id="portal-ocr" class="shell" style="display:none">
+  <nav class="sidebar">
+    <div class="sidebar-section">Import</div>
+    <div class="nav-item active" onclick="showScreen('o-upload', this)"><span class="icon">📤</span> Upload Documents</div>
+    <div class="nav-item" onclick="showScreen('o-review', this)"><span class="icon">🔍</span> Review Extractions <span class="badge badge-red" style="margin-left:auto;font-size:10px">3</span></div>
+    <div class="nav-item" onclick="showScreen('o-history', this)"><span class="icon">📁</span> Import History</div>
+    <div class="sidebar-section">Settings</div>
+    <div class="nav-item" onclick="showScreen('o-templates', this)"><span class="icon">⚙️</span> Document Templates</div>
+    <div class="sidebar-user">
+      <div class="avatar-sm">JM</div>
+      <div class="user-info">
+        <div class="user-name">Jake Morden</div>
+        <div class="user-role">Producer</div>
+      </div>
+    </div>
+  </nav>
+  <div class="main">
+
+    <!-- Upload — Koncile OCR Wizard -->
+    <div id="o-upload" class="screen active">
+      <div class="page-header">
+        <div class="page-title">Import via Koncile OCR</div>
+        <div class="page-sub">Upload a document — Koncile AI scans and extracts field data automatically into SADS</div>
+      </div>
+
+      <!-- Step indicator -->
+      <div class="kn-steps">
+        <div class="kn-step active" id="kn-step-1">
+          <div class="kn-step-num">1</div>
+          <div class="kn-step-label">Upload Document</div>
+        </div>
+        <div class="kn-step" id="kn-step-2">
+          <div class="kn-step-num">2</div>
+          <div class="kn-step-label">AI Scan</div>
+        </div>
+        <div class="kn-step" id="kn-step-3">
+          <div class="kn-step-num">3</div>
+          <div class="kn-step-label">Review Extraction</div>
+        </div>
+        <div class="kn-step" id="kn-step-4">
+          <div class="kn-step-num">4</div>
+          <div class="kn-step-label">Confirm &amp; Add to SADS</div>
+        </div>
+      </div>
+
+      <div class="kn-grid">
+
+        <!-- LEFT: Document panel -->
+        <div class="kn-doc-panel" id="kn-doc-panel">
+
+          <!-- Step 1: Upload -->
+          <div id="kn-upload-section">
+            <div class="kn-panel-header">
+              <div class="kn-panel-title">📄 Select Document</div>
+            </div>
+            <div class="kn-upload-zone" onclick="kn_simulateUpload()">
+              <div class="kn-upload-icon">📎</div>
+              <div class="kn-upload-title">Drag &amp; drop or click to browse</div>
+              <div class="kn-upload-sub">Grain tickets, spray records, soil tests, invoices, contracts</div>
+              <div class="kn-upload-types">
+                <span class="kn-type-pill">PDF</span>
+                <span class="kn-type-pill">JPEG</span>
+                <span class="kn-type-pill">PNG</span>
+                <span class="kn-type-pill">TIFF</span>
+                <span class="kn-type-pill">HEIC</span>
+              </div>
+            </div>
+            <div class="kn-file-row" id="kn-file-row">
+              <span style="font-size:22px">📄</span>
+              <div style="flex:1">
+                <div style="font-size:13px;font-weight:700;color:var(--green-800)">viterra_canola_ticket_20260314.pdf</div>
+                <div style="font-size:11px;color:var(--gray-500)">187 KB · PDF · Uploaded</div>
+              </div>
+              <span style="color:var(--green-700);font-size:18px">✓</span>
+            </div>
+            <div class="kn-template-section" id="kn-template-section" style="display:none">
+              <div class="kn-template-label">Select Koncile Template</div>
+              <div class="kn-template-grid">
+                <div class="kn-template-card selected" onclick="kn_selectTemplate(this)">
+                  <div class="t-icon">🌾</div>
+                  <div><div class="t-name">Grain Ticket</div><div class="t-fields">14 fields</div></div>
+                </div>
+                <div class="kn-template-card" onclick="kn_selectTemplate(this)">
+                  <div class="t-icon">🧪</div>
+                  <div><div class="t-name">Soil Test Report</div><div class="t-fields">22 fields</div></div>
+                </div>
+                <div class="kn-template-card" onclick="kn_selectTemplate(this)">
+                  <div class="t-icon">💊</div>
+                  <div><div class="t-name">Spray Record</div><div class="t-fields">11 fields</div></div>
+                </div>
+                <div class="kn-template-card" onclick="kn_selectTemplate(this)">
+                  <div class="t-icon">📋</div>
+                  <div><div class="t-name">Purchase Invoice</div><div class="t-fields">9 fields</div></div>
+                </div>
+              </div>
+            </div>
+            <div class="alert alert-info" style="margin:14px 22px 0;" id="kn-privacy-alert" style="display:none">
+              ℹ️ Documents are processed by <strong>Koncile AI OCR</strong> and temporarily leave your infrastructure for extraction. <a href="#" style="color:#1E40AF">Privacy details →</a>
+            </div>
+            <div class="kn-action-bar" id="kn-upload-actions" style="display:none">
+              <button class="btn btn-secondary" onclick="kn_resetAll()">Cancel</button>
+              <button class="btn btn-koncile" onclick="kn_startScan()">⬡ Send to Koncile OCR</button>
+            </div>
+          </div>
+
+          <!-- Steps 2 & 3: Document viewer with scan animation -->
+          <div id="kn-scan-section" style="display:none">
+            <div class="kn-panel-header">
+              <div class="kn-panel-title">
+                <span id="kn-panel-title-text">🔍 Scanning with Koncile AI</span>
+                <span class="kn-panel-badge kn-badge-koncile" id="kn-panel-badge">Processing</span>
+              </div>
+              <div style="font-size:11px;color:var(--gray-500)" id="kn-task-id">Task: kncl_8f2a9c31</div>
+            </div>
+
+            <div class="kn-doc-viewer">
+              <div class="kn-doc-paper">
+                <div class="kn-doc-logo-row">
+                  <div>
+                    <div class="kn-doc-elevator">VITERRA</div>
+                    <div class="kn-doc-type">Grain Elevator · Rosetown, SK</div>
+                  </div>
+                  <div class="kn-doc-ticket">
+                    <div style="font-size:9px;text-transform:uppercase;color:#999;font-weight:600;letter-spacing:0.8px">Ticket No.</div>
+                    <strong>#GRN-2026-038471</strong>
+                    <div style="font-size:10px;color:#555">March 14, 2026</div>
+                  </div>
+                </div>
+                <div class="kn-doc-grid">
+                  <div class="kn-doc-field"><span class="lbl">Producer Name</span><span class="val">Oilseed Farms Ltd.</span></div>
+                  <div class="kn-doc-field"><span class="lbl">Farm ID</span><span class="val">SK-47221-B</span></div>
+                  <div class="kn-doc-field"><span class="lbl">Commodity</span><span class="val">Canola No. 1</span></div>
+                  <div class="kn-doc-field"><span class="lbl">Grade</span><span class="val">No. 1 Canada</span></div>
+                  <div class="kn-doc-field"><span class="lbl">Moisture</span><span class="val">8.2 %</span></div>
+                  <div class="kn-doc-field"><span class="lbl">Dockage</span><span class="val">0.4 %</span></div>
+                  <div class="kn-doc-field"><span class="lbl">Gross Weight</span><span class="val">43,050 kg</span></div>
+                  <div class="kn-doc-field"><span class="lbl">Net Weight</span><span class="val">42,850 kg</span></div>
+                </div>
+                <hr class="kn-doc-sep">
+                <div class="kn-doc-grid">
+                  <div class="kn-doc-field"><span class="lbl">Contract No.</span><span class="val">CNT-2026-03847</span></div>
+                  <div class="kn-doc-field"><span class="lbl">Delivery Period</span><span class="val">Mar 14 – Mar 31</span></div>
+                  <div class="kn-doc-field"><span class="lbl">Price</span><span class="val">$14.85 / bu</span></div>
+                  <div class="kn-doc-field"><span class="lbl">Freight Zone</span><span class="val">Zone C – SK Central</span></div>
+                </div>
+                <div class="kn-doc-total">
+                  <span class="lbl">Estimated Settlement</span>
+                  <span class="val">$23,847.50</span>
+                </div>
+                <div class="kn-doc-stamp">RECEIVED</div>
+              </div>
+              <!-- Purple scan overlay -->
+              <div class="kn-scan-overlay" id="kn-scan-overlay">
+                <div class="kn-scan-line" id="kn-scan-line"></div>
+              </div>
+            </div>
+
+            <div class="kn-scan-status">
+              <div class="kn-spinner" id="kn-status-spinner"></div>
+              <div class="kn-progress-bar"><div class="kn-progress-fill" id="kn-progress-fill"></div></div>
+              <div class="kn-pct" id="kn-progress-pct">0%</div>
+              <span style="font-size:12px;color:var(--gray-500)" id="kn-status-msg">Initialising Koncile OCR…</span>
+            </div>
+
+            <div class="kn-strip">
+              <span class="kn-logo">⬡ Koncile</span>
+              <span class="kn-powered">AI-powered document extraction · api.koncile.ai</span>
+              <span style="margin-left:auto;font-size:10px;color:var(--gray-500)">Template: Grain Ticket · v2.3</span>
+            </div>
+          </div>
+
+          <!-- Step 4: Data mapping + consent + confirm -->
+          <div id="kn-mapping-section" style="display:none">
+            <div class="kn-panel-header">
+              <div class="kn-panel-title">🗂 SADS Data Mapping <span class="kn-panel-badge kn-badge-green">Ready to Add</span></div>
+            </div>
+
+            <div class="kn-success-banner" id="kn-success-banner">
+              <div class="kn-success-icon">✅</div>
+              <div class="kn-success-text">
+                <div class="title">Extraction Complete — 11 fields extracted</div>
+                <div class="sub">1 field flagged for review · Mapped to 3 SADS data types</div>
+              </div>
+            </div>
+
+            <div id="kn-mapping-rows">
+              <div class="kn-mapping-row"><span class="kn-mapping-tag kn-tag-production">Production</span><span class="kn-mapping-field">Commodity / Grade</span><span class="kn-mapping-value">Canola No. 1 · Canada #1</span></div>
+              <div class="kn-mapping-row"><span class="kn-mapping-tag kn-tag-production">Production</span><span class="kn-mapping-field">Net Weight</span><span class="kn-mapping-value">42,850 kg</span></div>
+              <div class="kn-mapping-row"><span class="kn-mapping-tag kn-tag-production">Production</span><span class="kn-mapping-field">Moisture / Dockage</span><span class="kn-mapping-value">8.2% · 0.4%</span></div>
+              <div class="kn-mapping-row"><span class="kn-mapping-tag kn-tag-sales">Sales</span><span class="kn-mapping-field">Price / Settlement</span><span class="kn-mapping-value">$14.85/bu · $23,847.50</span></div>
+              <div class="kn-mapping-row"><span class="kn-mapping-tag kn-tag-sales">Sales</span><span class="kn-mapping-field">Contract No.</span><span class="kn-mapping-value">CNT-2026-03847</span></div>
+              <div class="kn-mapping-row"><span class="kn-mapping-tag kn-tag-logistics">Logistics</span><span class="kn-mapping-field">Elevator / Freight Zone</span><span class="kn-mapping-value">Viterra Rosetown · Zone C SK</span></div>
+              <div class="kn-mapping-row"><span class="kn-mapping-tag kn-tag-spatial">Spatial</span><span class="kn-mapping-field">Farm ID</span><span class="kn-mapping-value">SK-47221-B</span></div>
+            </div>
+
+            <div class="kn-flag-row show" id="kn-flag-row">
+              ⚠️ <div><strong>Settlement Price flagged for review.</strong> Confidence 76% — verify $23,847.50 before confirming.</div>
+            </div>
+
+            <div class="kn-consent-preview show" id="kn-consent-preview">
+              <div class="kn-consent-header">Consent — Who Receives This Data?</div>
+              <div class="kn-consent-item">
+                <div class="kn-consent-recipient"><div class="kn-consent-dot" style="background:#3B82F6"></div><span>Agriculture Canada</span></div>
+                <div class="kn-ctoggle on" onclick="this.classList.toggle('on')"></div>
+              </div>
+              <div class="kn-consent-item">
+                <div class="kn-consent-recipient"><div class="kn-consent-dot" style="background:#F59E0B"></div><span>Industry Groups</span></div>
+                <div class="kn-ctoggle on" onclick="this.classList.toggle('on')"></div>
+              </div>
+              <div class="kn-consent-item">
+                <div class="kn-consent-recipient"><div class="kn-consent-dot" style="background:#6C3FC5"></div><span>Regulatory Bodies</span></div>
+                <div class="kn-ctoggle" onclick="this.classList.toggle('on')"></div>
+              </div>
+            </div>
+
+            <div class="kn-action-bar" id="kn-mapping-actions">
+              <button class="btn btn-secondary" onclick="kn_resetAll()">Start Over</button>
+              <button class="btn btn-primary" onclick="kn_confirmAdd()">✓ Add to SADS</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: Extracted fields panel -->
+        <div class="kn-fields-panel">
+          <div class="kn-panel-header">
+            <div class="kn-panel-title">⬡ Extracted Fields</div>
+            <span class="kn-panel-badge kn-badge-koncile" id="kn-fields-count">Waiting…</span>
+          </div>
+
+          <div id="kn-fields-list">
+            <!-- Fields injected by JS during scan -->
+          </div>
+
+          <div class="kn-flag-row" id="kn-flag-right" style="margin-top:8px">
+            ⚠️ <div><strong>1 field</strong> needs manual verification.</div>
+          </div>
+
+          <div class="kn-strip">
+            <span class="kn-logo">⬡ Koncile</span>
+            <span class="kn-powered">Confidence scores · 0.0–1.0</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Review Extractions -->
+    <div id="o-review" class="screen">
+      <div class="breadcrumb"><a onclick="showScreen('o-upload', null)">Upload</a> › <span>Review Extractions</span></div>
+      <div class="page-header flex-between">
+        <div><div class="page-title">Review Extractions</div><div class="page-sub">3 documents processed — review and confirm extracted data before it flows into your records</div></div>
+        <div class="flex gap-8">
+          <button class="btn btn-secondary">← Previous</button>
+          <button class="btn btn-primary">Accept All & Save →</button>
+        </div>
+      </div>
+
+      <!-- Doc selector tabs -->
+      <div class="flex gap-8 mb-16" style="overflow-x:auto">
+        <div class="card" style="padding:10px 14px;cursor:pointer;border-color:var(--green-700);min-width:200px">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--green-700)">1 of 3 · Fertilizer Invoice</div>
+          <div style="font-weight:600;font-size:13px;margin-top:2px">Agrium_Oct14.pdf</div>
+          <div class="flex gap-8 mt-8"><span class="badge badge-green">5 auto-accepted</span><span class="badge badge-amber">1 review</span></div>
+        </div>
+        <div class="card" style="padding:10px 14px;cursor:pointer;min-width:200px">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--gray-500)">2 of 3 · Grain Receipt</div>
+          <div style="font-weight:600;font-size:13px;margin-top:2px">Richardson_Scale.pdf</div>
+          <div class="flex gap-8 mt-8"><span class="badge badge-green">7 auto-accepted</span></div>
+        </div>
+        <div class="card" style="padding:10px 14px;cursor:pointer;min-width:200px">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--gray-500)">3 of 3 · Unknown Type</div>
+          <div style="font-weight:600;font-size:13px;margin-top:2px">Scan_Oct11.pdf</div>
+          <div class="flex gap-8 mt-8"><span class="badge badge-red">Needs classification</span></div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <!-- Extracted fields -->
+        <div class="card">
+          <div class="card-header flex-between">
+            <span class="card-title">Extracted Fields — Agrium_Oct14.pdf</span>
+            <span class="badge badge-blue">agri_fertilizer_invoice</span>
+          </div>
+          <div class="card-body">
+            <div style="display:grid;grid-template-columns:160px 1fr 160px;gap:8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--gray-500);padding-bottom:8px;border-bottom:1px solid var(--gray-200)">
+              <span>Field</span><span>Extracted Value</span><span>Confidence</span>
+            </div>
+
+            <div class="field-row">
+              <div class="field-name">Vendor Name</div>
+              <div class="field-value"><input type="text" value="Nutrien Ag Solutions"></div>
+              <div class="conf-bar"><div class="conf-track"><div class="conf-fill conf-high" style="width:97%"></div></div><span class="conf-pct conf-high-text">97%</span></div>
+              <button class="field-edit-btn">✓</button>
+            </div>
+            <div class="field-row">
+              <div class="field-name">Invoice Date</div>
+              <div class="field-value"><input type="text" value="2025-10-14"></div>
+              <div class="conf-bar"><div class="conf-track"><div class="conf-fill conf-high" style="width:99%"></div></div><span class="conf-pct conf-high-text">99%</span></div>
+              <button class="field-edit-btn">✓</button>
+            </div>
+            <div class="field-row">
+              <div class="field-name">Product Name</div>
+              <div class="field-value"><input type="text" value="46-0-0 Urea"></div>
+              <div class="conf-bar"><div class="conf-track"><div class="conf-fill conf-high" style="width:94%"></div></div><span class="conf-pct conf-high-text">94%</span></div>
+              <button class="field-edit-btn">✓</button>
+            </div>
+            <div class="field-row">
+              <div class="field-name">Quantity</div>
+              <div class="field-value"><input type="text" value="8.5 tonnes"></div>
+              <div class="conf-bar"><div class="conf-track"><div class="conf-fill conf-high" style="width:91%"></div></div><span class="conf-pct conf-high-text">91%</span></div>
+              <button class="field-edit-btn">✓</button>
+            </div>
+            <div class="field-row">
+              <div class="field-name">Total Cost</div>
+              <div class="field-value"><input type="text" value="$18,240.00"></div>
+              <div class="conf-bar"><div class="conf-track"><div class="conf-fill conf-high" style="width:88%"></div></div><span class="conf-pct conf-high-text">88%</span></div>
+              <button class="field-edit-btn">✓</button>
+            </div>
+            <div class="field-row">
+              <div class="field-name">Application Rate</div>
+              <div class="field-value"><input type="text" value="150 lbs/ac" class="needs-review" placeholder="Enter manually"></div>
+              <div class="conf-bar"><div class="conf-track"><div class="conf-fill conf-med" style="width:72%"></div></div><span class="conf-pct conf-med-text">72%</span></div>
+              <button class="field-edit-btn" style="background:var(--amber-light)">✏️</button>
+            </div>
+
+            <div class="alert alert-warn mt-16">
+              ⚠️ <strong>Application Rate</strong> has low confidence (72%). Please verify the value before saving.
+            </div>
+            <div class="divider"></div>
+            <div style="font-size:12.5px;color:var(--gray-500);font-weight:600;margin-bottom:8px">Derived Fields (auto-calculated)</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <span class="badge badge-blue">input_category: FERTILIZER</span>
+              <span class="badge badge-gray">data_source: OCR_AUTO</span>
+              <span class="badge badge-green">N: 69 kg/ha · P: 0 · K: 0</span>
+              <span class="badge badge-gray">crop_year: 2025</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Document preview -->
+        <div class="card">
+          <div class="card-header flex-between">
+            <span class="card-title">Document Preview</span>
+            <button class="btn btn-sm btn-secondary">⬇ Download Original</button>
+          </div>
+          <div style="background:var(--gray-100);padding:16px;border-radius:0 0 10px 10px;min-height:440px">
+            <!-- Simulated invoice preview -->
+            <div style="background:white;border-radius:6px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,0.08);font-size:12.5px">
+              <div style="display:flex;justify-content:space-between;border-bottom:2px solid var(--gray-200);padding-bottom:12px;margin-bottom:12px">
+                <div><div style="font-weight:800;font-size:16px;color:var(--green-800)">NUTRIEN AG SOLUTIONS</div><div style="color:var(--gray-500);font-size:11px">Nutrien Ltd. · Saskatoon, SK S7K 4H4</div></div>
+                <div style="text-align:right"><div style="font-weight:700">INVOICE</div><div style="color:var(--gray-500)"># NUT-2025-09841</div><div style="margin-top:4px;color:var(--gray-700)">Date: <strong>October 14, 2025</strong></div></div>
+              </div>
+              <div style="margin-bottom:12px"><span style="color:var(--gray-500)">Bill To: </span><strong>Jake Morden</strong><br><span style="color:var(--gray-500)">Box 214, Elrose, SK S0L 0Z0</span></div>
+              <table style="border:1px solid var(--gray-200)">
+                <thead><tr style="background:var(--gray-100)"><th style="font-size:11px;padding:6px 10px">Description</th><th style="font-size:11px;padding:6px 10px">Qty</th><th style="font-size:11px;padding:6px 10px">Unit</th><th style="font-size:11px;padding:6px 10px">Price</th><th style="font-size:11px;padding:6px 10px">Total</th></tr></thead>
+                <tbody><tr><td style="padding:6px 10px">46-0-0 Urea</td><td style="padding:6px 10px">8.5</td><td style="padding:6px 10px">tonne</td><td style="padding:6px 10px">$2,146.00</td><td style="padding:6px 10px"><strong>$18,241.00</strong></td></tr></tbody>
+              </table>
+              <div style="text-align:right;margin-top:12px;font-weight:700;font-size:14px">TOTAL: $18,241.00 CAD</div>
+              <div style="background:rgba(244,162,97,0.15);border:1px solid var(--amber);border-radius:4px;padding:6px 10px;margin-top:16px;font-size:11px;color:#92400E">
+                ⚠️ Field <em>"application rate"</em> was not found on this document — needs manual entry
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Import History -->
+    <div id="o-history" class="screen">
+      <div class="page-header"><div class="page-title">Import History</div><div class="page-sub">All documents processed via OCR</div></div>
+      <div class="card">
+        <div class="card-header flex-between"><span class="card-title">Processed Documents</span>
+          <div class="flex gap-8">
+            <select class="form-input" style="width:auto;font-size:12px;padding:4px 8px"><option>All types</option></select>
+            <button class="btn btn-sm btn-secondary">⬇ Export</button>
+          </div>
+        </div>
+        <table>
+          <thead><tr><th>Date</th><th>File</th><th>Type</th><th>Fields</th><th>Confidence</th><th>Status</th><th>SADS Record</th></tr></thead>
+          <tbody>
+            <tr><td>Oct 19</td><td>Agrium_Oct14.pdf</td><td>Fertilizer Invoice</td><td>6/6</td><td><span style="color:var(--green-700);font-weight:700">94%</span></td><td><span class="badge badge-amber">Pending Review</span></td><td>—</td></tr>
+            <tr><td>Oct 19</td><td>Richardson_Scale.pdf</td><td>Grain Receipt</td><td>7/7</td><td><span style="color:var(--green-700);font-weight:700">97%</span></td><td><span class="badge badge-green">Accepted</span></td><td>production_records</td></tr>
+            <tr><td>Oct 19</td><td>Scan_Oct11.pdf</td><td>Unknown</td><td>0/0</td><td>—</td><td><span class="badge badge-red">Needs Classification</span></td><td>—</td></tr>
+            <tr><td>Oct 14</td><td>Bayer_CropScience.pdf</td><td>Pesticide Invoice</td><td>5/5</td><td><span style="color:var(--green-700);font-weight:700">96%</span></td><td><span class="badge badge-green">Accepted</span></td><td>input_records</td></tr>
+            <tr><td>Oct 10</td><td>AL_SoilTest_SE08.pdf</td><td>Soil Test Report</td><td>9/9</td><td><span style="color:var(--green-700);font-weight:700">91%</span></td><td><span class="badge badge-green">Accepted</span></td><td>parcels/SE-08</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Templates -->
+    <div id="o-templates" class="screen">
+      <div class="page-header"><div class="page-title">Document Templates</div><div class="page-sub">Koncile extraction templates configured for SADS</div></div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Active Templates</span></div>
+        <table>
+          <thead><tr><th>Template ID</th><th>Document Type</th><th>Fields</th><th>SADS Collection</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td><code>agri_fertilizer_invoice</code></td><td>Fertilizer Invoice</td><td>8 fields</td><td>input_records</td><td><span class="badge badge-green">Active</span></td></tr>
+            <tr><td><code>agri_pesticide_invoice</code></td><td>Pesticide/Herbicide</td><td>9 fields</td><td>input_records</td><td><span class="badge badge-green">Active</span></td></tr>
+            <tr><td><code>agri_grain_receipt</code></td><td>Grain Receipt</td><td>10 fields</td><td>production_records</td><td><span class="badge badge-green">Active</span></td></tr>
+            <tr><td><code>agri_soil_test</code></td><td>Soil Test Report</td><td>12 fields</td><td>parcels</td><td><span class="badge badge-green">Active</span></td></tr>
+            <tr><td><code>agri_spray_record</code></td><td>Spray Record</td><td>7 fields</td><td>input_records</td><td><span class="badge badge-green">Active</span></td></tr>
+            <tr><td><code>agri_crop_insurance</code></td><td>Crop Insurance</td><td>8 fields</td><td>operations</td><td><span class="badge badge-amber">In review</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /portal-ocr -->
+
+
+<!-- ═══════════════════════════════════════════
+     RECIPIENT DATA ACCESS PORTAL
+═══════════════════════════════════════════ -->
+<div id="portal-recipient" class="shell" style="display:none">
+  <nav class="sidebar">
+    <div class="sidebar-section">Overview</div>
+    <div class="nav-item active" onclick="showScreen('r-dashboard', this)"><span class="icon">📊</span> Dashboard</div>
+    <div class="sidebar-section">Data Access</div>
+    <div class="nav-item" onclick="showScreen('r-datasets', this)"><span class="icon">🗂️</span> Available Datasets</div>
+    <div class="nav-item" onclick="showScreen('r-query', this)"><span class="icon">🔍</span> Query Data</div>
+    <div class="nav-item" onclick="showScreen('r-requests', this)"><span class="icon">📬</span> Access Requests</div>
+    <div class="sidebar-section">Exports</div>
+    <div class="nav-item" onclick="showScreen('r-exports', this)"><span class="icon">⬇</span> Downloads</div>
+    <div class="sidebar-user">
+      <div class="avatar-sm" style="background:var(--blue)">AC</div>
+      <div class="user-info">
+        <div class="user-name">AAFC Analytics</div>
+        <div class="user-role">Government Recipient</div>
+      </div>
+    </div>
+  </nav>
+  <div class="main">
+
+    <!-- Dashboard -->
+    <div id="r-dashboard" class="screen active">
+      <div class="page-header">
+        <div class="page-title">Recipient Dashboard</div>
+        <div class="page-sub">Agriculture and Agri-Food Canada · AgriStability Analytics · Powered by Fluid Scientific SADS</div>
+      </div>
+      <div class="alert alert-info">
+        ℹ️ You are accessing <strong>Tier 1 (aggregate)</strong> data only. All results require a minimum of 5 consenting producers per cell. Individual farm data is never exposed.
+      </div>
+      <div class="grid-4 mb-16">
+        <div class="stat-card"><div class="stat-label">Consenting Producers</div><div class="stat-value">1,847</div><div class="stat-unit stat-change up">▲ 142 this quarter</div></div>
+        <div class="stat-card"><div class="stat-label">Provinces Covered</div><div class="stat-value">4</div><div class="stat-unit">SK · AB · MB · BC</div></div>
+        <div class="stat-card"><div class="stat-label">Active Datasets</div><div class="stat-value">6</div><div class="stat-unit">2 pending approval</div></div>
+        <div class="stat-card"><div class="stat-label">API Calls (30d)</div><div class="stat-value">2,341</div><div class="stat-unit stat-change neutral">Within quota</div></div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Active Data Access</span></div>
+          <div class="card-body">
+            <table>
+              <thead><tr><th>Dataset</th><th>Tier</th><th>Producers</th><th>Expires</th></tr></thead>
+              <tbody>
+                <tr><td>SK Canola Yields 2025</td><td><span class="tier tier-1">T1</span></td><td>412</td><td>Mar 31, 2026</td></tr>
+                <tr><td>SK Wheat Yields 2025</td><td><span class="tier tier-1">T1</span></td><td>386</td><td>Mar 31, 2026</td></tr>
+                <tr><td>AB Input Cost Index</td><td><span class="tier tier-1">T1</span></td><td>291</td><td>Dec 31, 2025</td></tr>
+                <tr><td>Prairies Soil Health</td><td><span class="tier tier-1">T1</span></td><td>758</td><td>Jun 30, 2026</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Recent Queries</span><span class="text-sm text-muted">Last 7 days</span></div>
+          <div class="card-body">
+            <div class="activity-item"><div class="activity-dot dot-blue"></div><div><div class="activity-text">Canola yield by soil zone · SK Region 4–8 · 2025</div><div class="activity-time">Today · 9:41 AM · 289 producer cells</div></div></div>
+            <div class="activity-item"><div class="activity-dot dot-blue"></div><div><div class="activity-text">Fertilizer cost index · AB · Sep–Oct 2025</div><div class="activity-time">Yesterday · 2:18 PM · 178 producer cells</div></div></div>
+            <div class="activity-item"><div class="activity-dot dot-blue"></div><div><div class="activity-text">Wheat variety performance · SK · 2023–2025</div><div class="activity-time">Oct 17 · 11:05 AM · 412 producer cells</div></div></div>
+            <div class="activity-item"><div class="activity-dot dot-amber"></div><div><div class="activity-text">Canola input costs by parcel — <strong>BLOCKED</strong> (Tier 3 not consented)</div><div class="activity-time">Oct 16 · 4:33 PM · 403 Forbidden</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Available Datasets -->
+    <div id="r-datasets" class="screen">
+      <div class="page-header flex-between">
+        <div><div class="page-title">Available Datasets</div><div class="page-sub">Aggregate datasets authorized for your organization</div></div>
+        <button class="btn btn-primary">＋ Request New Dataset</button>
+      </div>
+      <div class="grid-2">
+        <div class="dataset-card" onclick="showScreen('r-query', document.querySelector('[onclick*=r-query]'))">
+          <div class="flex-between"><div class="dataset-name">Prairie Canola Yield Index 2025</div><span class="tier tier-1">T1</span></div>
+          <div class="dataset-meta">SK · AB · MB · Consented producers: 891 · Refreshed daily</div>
+          <div class="dataset-stats">
+            <div class="dataset-stat"><div class="dataset-stat-val">891</div><div class="dataset-stat-label">Producers</div></div>
+            <div class="dataset-stat"><div class="dataset-stat-val">24</div><div class="dataset-stat-label">Regions</div></div>
+            <div class="dataset-stat"><div class="dataset-stat-val">50.4</div><div class="dataset-stat-label">Avg bu/ac</div></div>
+          </div>
+          <div class="flex gap-8 mt-8">
+            <button class="btn btn-sm btn-primary">Query →</button>
+            <button class="btn btn-sm btn-secondary">⬇ CSV</button>
+          </div>
+        </div>
+        <div class="dataset-card">
+          <div class="flex-between"><div class="dataset-name">Prairie Input Cost Index 2025</div><span class="tier tier-1">T1</span></div>
+          <div class="dataset-meta">SK · AB · Input cost per acre by crop · Consented: 632</div>
+          <div class="dataset-stats">
+            <div class="dataset-stat"><div class="dataset-stat-val">632</div><div class="dataset-stat-label">Producers</div></div>
+            <div class="dataset-stat"><div class="dataset-stat-val">18</div><div class="dataset-stat-label">Regions</div></div>
+            <div class="dataset-stat"><div class="dataset-stat-val">$74</div><div class="dataset-stat-label">Avg $/ac</div></div>
+          </div>
+          <div class="flex gap-8 mt-8">
+            <button class="btn btn-sm btn-primary">Query →</button>
+            <button class="btn btn-sm btn-secondary">⬇ CSV</button>
+          </div>
+        </div>
+        <div class="dataset-card">
+          <div class="flex-between"><div class="dataset-name">Prairies Soil Health Survey</div><span class="tier tier-1">T1</span></div>
+          <div class="dataset-meta">4 provinces · pH, OM%, N/P/K by soil zone · Consented: 1,247</div>
+          <div class="dataset-stats">
+            <div class="dataset-stat"><div class="dataset-stat-val">1,247</div><div class="dataset-stat-label">Producers</div></div>
+            <div class="dataset-stat"><div class="dataset-stat-val">6.9</div><div class="dataset-stat-label">Avg pH</div></div>
+            <div class="dataset-stat"><div class="dataset-stat-val">4.2%</div><div class="dataset-stat-label">Avg OM</div></div>
+          </div>
+          <div class="flex gap-8 mt-8">
+            <button class="btn btn-sm btn-primary">Query →</button>
+            <button class="btn btn-sm btn-secondary">⬇ CSV</button>
+          </div>
+        </div>
+        <div class="dataset-card" style="opacity:0.6;cursor:default">
+          <div class="flex-between"><div class="dataset-name">SK Field-Level Yield Records</div><span class="tier tier-2">T2</span></div>
+          <div class="dataset-meta">Request pending · Requires Tier 2 producer consent</div>
+          <div class="dataset-stats">
+            <div class="dataset-stat"><div class="dataset-stat-val">—</div><div class="dataset-stat-label">Producers</div></div>
+            <div class="dataset-stat"><div class="dataset-stat-val">—</div><div class="dataset-stat-label">Parcels</div></div>
+          </div>
+          <div class="flex gap-8 mt-8">
+            <span class="badge badge-amber">⏳ Access Request Pending</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Query Data -->
+    <div id="r-query" class="screen">
+      <div class="page-header"><div class="page-title">Query: Prairie Canola Yield Index 2025</div><div class="page-sub">Tier 1 · Aggregate only · 891 consenting producers</div></div>
+      <div class="grid-2 mb-16">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Query Builder</span></div>
+          <div class="card-body">
+            <div class="form-group"><label class="form-label">Province</label><select class="form-input"><option>Saskatchewan</option><option>Alberta</option><option>Manitoba</option><option>All Prairies</option></select></div>
+            <div class="form-group"><label class="form-label">Soil Zone</label><select class="form-input"><option>All zones</option><option>Dark Brown</option><option>Brown</option><option>Black</option><option>Grey</option></select></div>
+            <div class="form-group"><label class="form-label">Crop Year</label><select class="form-input"><option>2025</option><option>2024</option><option>2023</option><option>3-year average</option></select></div>
+            <div class="form-group"><label class="form-label">Metric</label><select class="form-input"><option>Yield (bu/ac)</option><option>Yield (mt/ha)</option><option>Moisture at harvest</option><option>Grade distribution</option></select></div>
+            <button class="btn btn-primary" style="width:100%">▶ Run Query</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header flex-between"><span class="card-title">Results — SK Canola Yield by Soil Zone</span><button class="btn btn-sm btn-secondary">⬇ Export CSV</button></div>
+          <div class="card-body" style="padding:0">
+            <table>
+              <thead><tr><th>Soil Zone</th><th>Producers</th><th>Avg Yield</th><th>Std Dev</th><th>Min</th><th>Max</th></tr></thead>
+              <tbody>
+                <tr><td>Dark Brown</td><td>247</td><td><strong>50.4 bu/ac</strong></td><td>±6.2</td><td>38</td><td>64</td></tr>
+                <tr><td>Brown</td><td>189</td><td><strong>44.1 bu/ac</strong></td><td>±7.8</td><td>29</td><td>61</td></tr>
+                <tr><td>Black</td><td>312</td><td><strong>55.3 bu/ac</strong></td><td>±5.4</td><td>42</td><td>70</td></tr>
+                <tr><td>Grey</td><td>143</td><td><strong>48.7 bu/ac</strong></td><td>±8.1</td><td>31</td><td>66</td></tr>
+              </tbody>
+            </table>
+            <div class="alert alert-success" style="margin:12px;font-size:12px">
+              ✅ All cells meet minimum n≥5 producers. Cell suppression not required.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Access Requests -->
+    <div id="r-requests" class="screen">
+      <div class="page-header"><div class="page-title">Access Requests</div><div class="page-sub">Data access requests submitted to SADS administrators</div></div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">My Requests</span></div>
+        <table>
+          <thead><tr><th>Dataset Requested</th><th>Tier</th><th>Justification</th><th>Submitted</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>SK Field-Level Yield Records</td><td><span class="tier tier-2">T2</span></td><td>AgriStability program validation</td><td>Oct 15, 2025</td><td><span class="badge badge-amber">⏳ Pending Review</span></td></tr>
+            <tr><td>Prairie Canola Yield Index</td><td><span class="tier tier-1">T1</span></td><td>Crop outlook report</td><td>Sep 01, 2025</td><td><span class="badge badge-green">✓ Approved</span></td></tr>
+            <tr><td>Prairies Input Cost Index</td><td><span class="tier tier-1">T1</span></td><td>Policy research</td><td>Sep 01, 2025</td><td><span class="badge badge-green">✓ Approved</span></td></tr>
+            <tr><td>Individual producer records</td><td><span class="tier tier-4">T4</span></td><td>Audit</td><td>Aug 20, 2025</td><td><span class="badge badge-red">✗ Denied — Tier 4 never shared</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Exports -->
+    <div id="r-exports" class="screen">
+      <div class="page-header"><div class="page-title">Downloads</div><div class="page-sub">Exported datasets ready for download</div></div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Recent Exports</span></div>
+        <table>
+          <thead><tr><th>File</th><th>Dataset</th><th>Format</th><th>Created</th><th>Size</th><th></th></tr></thead>
+          <tbody>
+            <tr><td>sk_canola_yield_2025_by_zone.csv</td><td>Prairie Canola Yield Index</td><td>CSV</td><td>Today</td><td>42 KB</td><td><button class="btn btn-sm btn-primary">⬇ Download</button></td></tr>
+            <tr><td>ab_input_cost_index_2025.csv</td><td>Prairie Input Cost Index</td><td>CSV</td><td>Oct 18</td><td>28 KB</td><td><button class="btn btn-sm btn-primary">⬇ Download</button></td></tr>
+            <tr><td>soil_health_prairies_2025.json</td><td>Prairies Soil Health</td><td>JSON</td><td>Oct 17</td><td>114 KB</td><td><button class="btn btn-sm btn-primary">⬇ Download</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /portal-recipient -->
+
+
+<!-- ═══════════════════════════════════════════
+     LOGIN SCREEN
+═══════════════════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-header">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 200" aria-label="Fluid Scientific"><path d="m15.37,51.18c0-27.42,16.77-41.23,41.03-41.23,22.08,0,37.79,11.6,40.44,34.65.44,3.8-2.45,7.18-6.28,7.18h-.38c-3.28,0-5.91-2.51-6.3-5.77-1.97-16.31-12.57-23.82-27.48-23.82-16.77,0-27.82,9.27-27.82,29v17.56h44.15c3.32,0,6.02,2.69,6.02,6.02h0c0,3.32-2.69,6.02-6.02,6.02H28.59v65.48c0,3.49-2.83,6.32-6.32,6.32h-.57c-3.49,0-6.32-2.83-6.32-6.32V51.18ZM116.78,12.51h.57c3.49,0,6.32,2.83,6.32,6.32v127.42c0,3.49-2.83,6.32-6.32,6.32h-.57c-3.49,0-6.32-2.83-6.32-6.32V18.84c0-3.49,2.83-6.32,6.32-6.32Z"/><path d="m146.76,106.02v-44.29c0-3.65,2.96-6.61,6.61-6.61h0c3.65,0,6.61,2.96,6.61,6.61v44.29c0,23.87,13.81,36.89,34.92,36.89s34.92-13.02,34.92-36.89v-44.29c0-3.65,2.96-6.61,6.61-6.61h0c3.65,0,6.61,2.96,6.61,6.61v44.29c0,32.35-19.33,49.12-48.14,49.12s-48.13-16.77-48.13-49.12Z"/><path d="m272.61,12.83c-5.72,0-10.06,4.34-10.06,10.06s4.34,10.06,10.06,10.06,10.06-4.34,10.06-10.06-4.34-10.06-10.06-10.06Z"/><path d="m272.71,55.12c-3.65,0-6.61,2.96-6.61,6.61v84.24c0,3.65,2.96,6.61,6.61,6.61s6.61-2.96,6.61-6.61V61.73c0-3.65-2.96-6.61-6.61-6.61Z"/><path d="m404.63,17.12c0-3.57-2.89-6.46-6.46-6.46s-6.46,2.89-6.46,6.46v50.03c-9.81-11.37-24.31-18.55-40.36-18.55-29.37,0-53.27,23.9-53.27,53.27s23.9,53.27,53.27,53.27,53.27-23.9,53.27-53.27c0-.21-.02-.41-.02-.61,0-.07.02-.13.02-.19V17.12Zm-53.27,125.1c-22.25,0-40.36-18.1-40.36-40.36s18.1-40.36,40.36-40.36,38.94,16.59,40.27,37.78c.06.85.08,1.71.08,2.57,0,22.25-18.1,40.36-40.36,40.36Z"/><path d="m205.3,190.05c-1.35,0-2.56-.17-3.61-.5-1.05-.33-2.06-.9-3.02-1.69-.21-.15-.36-.33-.46-.53-.1-.2-.16-.4-.16-.61,0-.33.13-.62.39-.88.26-.26.59-.39.99-.39.3,0,.58.09.84.28.71.6,1.46,1.06,2.24,1.37.78.31,1.7.46,2.75.46.75,0,1.44-.11,2.07-.33.63-.22,1.13-.52,1.51-.9.38-.38.56-.82.56-1.32-.02-.62-.22-1.13-.59-1.52-.38-.4-.93-.73-1.65-1.01-.72-.27-1.59-.5-2.61-.67-.94-.17-1.79-.4-2.54-.67-.75-.28-1.39-.62-1.9-1.04-.52-.42-.92-.92-1.2-1.51-.28-.58-.42-1.26-.42-2.01,0-1.05.3-1.96.9-2.72.6-.76,1.42-1.35,2.45-1.77,1.03-.41,2.2-.62,3.5-.62,1.18,0,2.29.17,3.33.5,1.03.33,1.87.79,2.51,1.35.45.36.68.75.68,1.16,0,.33-.14.62-.41.88-.27.26-.59.39-.94.39-.26,0-.49-.07-.68-.21-.3-.29-.71-.55-1.21-.79-.51-.23-1.05-.43-1.62-.58-.57-.15-1.12-.23-1.65-.23-.84,0-1.57.11-2.17.32-.6.21-1.06.51-1.38.88s-.48.81-.48,1.33c0,.58.18,1.06.55,1.43.37.37.88.67,1.54.9.66.23,1.41.44,2.25.63,1.03.21,1.96.44,2.78.7.82.26,1.51.59,2.07.99s1,.91,1.3,1.51c.3.6.45,1.35.45,2.24,0,1.03-.32,1.93-.96,2.71-.64.77-1.48,1.38-2.52,1.81-1.04.43-2.2.64-3.48.64Z"/><path d="m236.78,172.77c.41.19.65.48.72.88s-.05.76-.35,1.08c-.21.28-.47.43-.79.45-.32.03-.65-.04-.99-.19-.53-.26-1.09-.46-1.71-.62-.61-.15-1.24-.23-1.9-.23-1.07,0-2.03.16-2.89.49-.85.33-1.59.78-2.21,1.37-.62.58-1.1,1.28-1.42,2.09-.33.81-.49,1.7-.49,2.68,0,1.08.18,2.04.54,2.88.36.83.85,1.54,1.48,2.12s1.37,1.01,2.23,1.29c.85.28,1.78.43,2.78.43.64,0,1.26-.07,1.88-.21.61-.14,1.19-.34,1.73-.62.34-.15.67-.21.99-.17s.59.19.82.45c.3.36.41.73.34,1.11-.08.38-.31.65-.71.83-.47.24-.99.45-1.55.63-.56.18-1.14.32-1.72.41s-1.17.14-1.78.14c-1.35,0-2.63-.21-3.85-.62-1.21-.41-2.28-1.01-3.21-1.81-.93-.79-1.67-1.76-2.21-2.92-.54-1.15-.82-2.47-.82-3.95,0-1.32.25-2.55.76-3.66.51-1.12,1.22-2.09,2.13-2.92.91-.83,1.98-1.47,3.2-1.92,1.22-.46,2.56-.68,4-.68.9,0,1.78.1,2.63.31.86.21,1.65.5,2.38.88Z"/><path d="m250.7,188.48c-.02.38-.17.69-.46.94-.29.25-.63.37-1.03.37-.45,0-.81-.12-1.07-.37-.26-.25-.39-.56-.39-.94v-15.43c0-.38.14-.69.42-.94s.65-.37,1.1-.37c.38,0,.71.12,1,.37.29.25.44.56.44.94v15.43Z"/><path d="m263.75,171.74h9.72c.41,0,.76.12,1.03.36.27.24.41.54.41.9s-.14.65-.41.88c-.27.22-.62.34-1.03.34h-8.48l.28-.44v5.78l-.25-.26h7.19c.41,0,.76.12,1.03.36.27.24.41.55.41.93s-.14.65-.41.88c-.27.22-.62.33-1.03.33h-7.13l.2-.23v5.96l-.2-.21h8.4c.41,0,.76.12,1.03.37.27.25.41.54.41.86,0,.36-.14.66-.41.89-.27.23-.62.35-1.03.35h-9.72c-.41,0-.76-.12-1.03-.37-.27-.25-.41-.56-.41-.94v-15.43c0-.38.14-.69.41-.94.27-.25.62-.37,1.03-.37Z"/><path d="m300.25,171.74c.38,0,.68.12.92.35.23.23.35.52.35.86v15.53c0,.38-.14.69-.41.94-.27.25-.62.37-1.03.37-.21,0-.41-.03-.62-.1-.21-.07-.37-.16-.48-.28l-11.58-13.72.65-.36v13.29c0,.33-.12.61-.37.84-.24.23-.55.35-.93.35-.39,0-.71-.12-.94-.35-.23-.23-.35-.51-.35-.84v-15.56c0-.38.14-.69.41-.94.27-.25.62-.37,1.03-.37.21,0,.43.04.66.12.23.08.41.19.52.35l11.3,13.47-.42.36v-13.08c0-.34.12-.63.35-.86.24-.23.55-.35.94-.35Z"/><path d="m313.18,174.22c-.39,0-.73-.12-1.01-.35s-.42-.53-.42-.89.14-.68.42-.9c.28-.22.62-.33,1.01-.33h12.79c.41,0,.76.12,1.03.35.27.23.41.53.41.89s-.14.68-.41.9c-.27.22-.62.34-1.03.34h-12.79Zm6.4,15.58c-.45,0-.82-.12-1.1-.37-.28-.25-.42-.56-.42-.94v-15.45h3.04v15.45c0,.38-.15.69-.44.94-.29.25-.65.37-1.08.37Z"/><path d="m340.6,188.48c-.02.38-.17.69-.46.94-.29.25-.63.37-1.03.37-.45,0-.81-.12-1.07-.37-.26-.25-.39-.56-.39-.94v-15.43c0-.38.14-.69.42-.94.28-.25.65-.37,1.1-.37.38,0,.71.12,1,.37.29.25.44.56.44.94v15.43Z"/><path d="m353.7,189.8c-.45,0-.81-.12-1.08-.37-.27-.25-.41-.56-.41-.94v-15.43c0-.38.14-.69.41-.94s.62-.37,1.03-.37h9.53c.39,0,.73.12,1.01.36.28.24.42.54.42.9,0,.33-.14.61-.42.85-.28.24-.62.36-1.01.36h-8.23l.2-.26v5.75l-.17-.31h6.93c.39,0,.73.12,1.01.36.28.24.42.55.42.93,0,.31-.14.59-.42.84-.28.25-.62.37-1.01.37h-6.99l.23-.23v6.81c0,.38-.14.69-.42.94-.28.25-.62.37-1.01.37Z"/><path d="m378.08,188.48c-.02.38-.17.69-.47.94-.29.25-.63.37-1.03.37-.45,0-.81-.12-1.07-.37-.26-.25-.39-.56-.39-.94v-15.43c0-.38.14-.69.42-.94.28-.25.65-.37,1.1-.37.38,0,.71.12,1,.37s.44.56.44.94v15.43Z"/><path d="m403.7,172.77c.41.19.65.48.72.88.07.4-.05.76-.35,1.08-.21.28-.47.43-.79.45-.32.03-.65-.04-.99-.19-.53-.26-1.09-.46-1.71-.62-.61-.15-1.25-.23-1.9-.23-1.07,0-2.03.16-2.89.49-.86.33-1.59.78-2.21,1.37-.62.58-1.09,1.28-1.42,2.09-.33.81-.49,1.7-.49,2.68,0,1.08.18,2.04.54,2.88.36.83.85,1.54,1.48,2.12.63.58,1.37,1.01,2.23,1.29.85.28,1.78.43,2.78.43.64,0,1.26-.07,1.87-.21.61-.14,1.19-.34,1.73-.62.34-.15.67-.21.99-.17.32.04.59.19.82.45.3.36.41.73.34,1.11-.08.38-.31.65-.7.83-.47.24-.99.45-1.55.63-.56.18-1.14.32-1.72.41s-1.17.14-1.78.14c-1.35,0-2.63-.21-3.85-.62-1.21-.41-2.28-1.01-3.21-1.81-.93-.79-1.67-1.76-2.21-2.92-.54-1.15-.82-2.47-.82-3.95,0-1.32.25-2.55.76-3.66.51-1.12,1.22-2.09,2.13-2.92.91-.83,1.98-1.47,3.2-1.92,1.22-.46,2.55-.68,4-.68.9,0,1.78.1,2.63.31.85.21,1.65.5,2.38.88Z"/></svg>
+      <div class="login-product">Sovereign Agricultural Data System</div>
+      <div class="login-tagline">Canadian producer-owned farm data platform<br>Powered by Fluid Scientific</div>
+    </div>
+    <div class="login-body">
+      <div style="margin-bottom:14px">
+        <label class="form-label" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--gray-500);display:block;margin-bottom:5px">Email address</label>
+        <input class="form-input" type="email" placeholder="you@example.com" value="ash@fluidscientific.com" style="width:100%;padding:9px 12px;border:1.5px solid var(--gray-300);border-radius:7px;font-size:13.5px">
+      </div>
+      <div>
+        <label class="form-label" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--gray-500);display:block;margin-bottom:5px">Password</label>
+        <input class="form-input" type="password" placeholder="••••••••••" value="password" style="width:100%;padding:9px 12px;border:1.5px solid var(--gray-300);border-radius:7px;font-size:13.5px">
+      </div>
+      <div class="login-divider">sign in as</div>
+      <div class="role-cards" id="role-cards">
+        <div class="role-card selected" onclick="selectRole(this,'producer')">
+          <div class="role-icon producer">🌾</div>
+          <div><div class="role-name">Producer</div><div class="role-desc">Manage your farm data, consent, and records</div></div>
+        </div>
+        <div class="role-card" onclick="selectRole(this,'recipient')">
+          <div class="role-icon recipient">📊</div>
+          <div><div class="role-name">Recipient / Analyst</div><div class="role-desc">Access authorized aggregate datasets</div></div>
+        </div>
+        <div class="role-card" onclick="selectRole(this,'admin')">
+          <div class="role-icon admin">⚙️</div>
+          <div><div class="role-name">System Administrator</div><div class="role-desc">Manage users, consents, and platform settings</div></div>
+        </div>
+      </div>
+      <button class="login-btn" onclick="handleLogin()">Sign In →</button>
+      <div class="login-footnote">
+        Protected by OIDC · Data sovereignty governed under PIPEDA<br>
+        <a href="#" style="color:var(--green-700)">Privacy policy</a> · <a href="#" style="color:var(--green-700)">Terms of use</a>
+      </div>
+    </div>
+  </div>
+  <div class="login-bg-note">© 2025 Fluid Scientific · SADS Platform v1.0 · All producer data is encrypted at rest</div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     ADMIN DASHBOARD PORTAL
+═══════════════════════════════════════════ -->
+<div id="portal-admin" class="shell" style="display:none">
+  <nav class="sidebar">
+    <div class="sidebar-section">Platform</div>
+    <div class="nav-item active" onclick="showScreen('a-overview', this)"><span class="icon">🖥️</span> System Overview</div>
+    <div class="sidebar-section">Users</div>
+    <div class="nav-item" onclick="showScreen('a-producers', this)"><span class="icon">🌾</span> Producers</div>
+    <div class="nav-item" onclick="showScreen('a-recipients', this)"><span class="icon">🏛️</span> Recipients</div>
+    <div class="sidebar-section">Governance</div>
+    <div class="nav-item" onclick="showScreen('a-consents', this)"><span class="icon">🔐</span> Consent Registry</div>
+    <div class="nav-item" onclick="showScreen('a-requests', this)"><span class="icon">📬</span> Access Requests <span class="badge badge-amber" style="margin-left:auto;font-size:10px">2</span></div>
+    <div class="nav-item" onclick="showScreen('a-audit', this)"><span class="icon">📋</span> Audit Log</div>
+    <div class="sidebar-section">Configuration</div>
+    <div class="nav-item" onclick="showScreen('a-settings', this)"><span class="icon">⚙️</span> System Settings</div>
+    <div class="sidebar-user">
+      <div class="avatar-sm" style="background:#9333EA">FS</div>
+      <div class="user-info">
+        <div class="user-name">Ash · Fluid Scientific</div>
+        <div class="user-role">System Administrator</div>
+      </div>
+    </div>
+  </nav>
+  <div class="main">
+
+    <!-- System Overview -->
+    <div id="a-overview" class="screen active">
+      <div class="page-header flex-between">
+        <div><div class="page-title">System Overview</div><div class="page-sub">SADS Platform · v1.0 · All systems operational</div></div>
+        <span class="badge badge-green" style="font-size:12px;padding:6px 12px">● All Systems Operational</span>
+      </div>
+      <div class="grid-4 mb-16">
+        <div class="stat-card admin-stat"><div class="stat-label">Registered Producers</div><div class="stat-value">1,847</div><div class="stat-unit stat-change up">▲ 142 this quarter</div></div>
+        <div class="stat-card admin-stat"><div class="stat-label">Active Consent Links</div><div class="stat-value">4,291</div><div class="stat-unit stat-change up">▲ 318 this month</div></div>
+        <div class="stat-card admin-stat"><div class="stat-label">API Calls (30d)</div><div class="stat-value">94.2K</div><div class="stat-unit stat-change neutral">Within quota</div></div>
+        <div class="stat-card admin-stat"><div class="stat-label">Pending Requests</div><div class="stat-value">2</div><div class="stat-unit" style="color:var(--amber)">Needs review</div></div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Platform Health</span><span class="badge badge-green">All green</span></div>
+          <div class="card-body">
+            <table>
+              <thead><tr><th>Service</th><th>Status</th><th>Uptime (30d)</th><th>Latency P95</th></tr></thead>
+              <tbody>
+                <tr><td>API Gateway</td><td><span class="badge badge-green">● Healthy</span></td><td>99.97%</td><td>210 ms</td></tr>
+                <tr><td>MongoDB Atlas</td><td><span class="badge badge-green">● Healthy</span></td><td>99.99%</td><td>18 ms</td></tr>
+                <tr><td>Koncile OCR</td><td><span class="badge badge-green">● Healthy</span></td><td>99.82%</td><td>1.4 s</td></tr>
+                <tr><td>Auth (OIDC)</td><td><span class="badge badge-green">● Healthy</span></td><td>100%</td><td>95 ms</td></tr>
+                <tr><td>Object Storage</td><td><span class="badge badge-green">● Healthy</span></td><td>100%</td><td>—</td></tr>
+                <tr><td>Audit Log</td><td><span class="badge badge-green">● Healthy</span></td><td>100%</td><td>—</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Recent Admin Events</span></div>
+          <div class="card-body">
+            <div class="activity-item"><div class="activity-dot" style="background:#9333EA"></div><div><div class="activity-text">New recipient approved: <strong>SK Canola Dev. Commission</strong> — Tier 1 access</div><div class="activity-time">Today, 10:22 AM · by Ash</div></div></div>
+            <div class="activity-item"><div class="activity-dot dot-amber"></div><div><div class="activity-text">Access request pending: <strong>AB Grain Farmers</strong> — Tier 2 field-level yield data</div><div class="activity-time">Yesterday, 3:44 PM</div></div></div>
+            <div class="activity-item"><div class="activity-dot dot-green"></div><div><div class="activity-text">212 new producers onboarded via bulk invite — SK batch Oct 2025</div><div class="activity-time">Oct 18, 9:00 AM · by Ash</div></div></div>
+            <div class="activity-item"><div class="activity-dot" style="background:#9333EA"></div><div><div class="activity-text">Cell suppression threshold updated: n≥5 → confirmed at n≥5 (no change)</div><div class="activity-time">Oct 15, 2:10 PM · by Ash</div></div></div>
+            <div class="activity-item"><div class="activity-dot dot-green"></div><div><div class="activity-text">Koncile template <code>agri_crop_insurance</code> activated after review</div><div class="activity-time">Oct 14, 11:05 AM · by Ash</div></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="grid-2 mt-16">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Data Coverage by Province</span></div>
+          <div class="card-body">
+            <table>
+              <thead><tr><th>Province</th><th>Producers</th><th>Parcels</th><th>Avg Completeness</th><th>Tier 1 Consents</th></tr></thead>
+              <tbody>
+                <tr><td>🌾 Saskatchewan</td><td>891</td><td>8,241</td><td><span style="color:var(--green-700);font-weight:700">86%</span></td><td>724</td></tr>
+                <tr><td>🌾 Alberta</td><td>512</td><td>4,890</td><td><span style="color:var(--green-700);font-weight:700">79%</span></td><td>398</td></tr>
+                <tr><td>🌾 Manitoba</td><td>344</td><td>3,102</td><td><span style="color:var(--amber);font-weight:700">72%</span></td><td>271</td></tr>
+                <tr><td>🌾 BC Interior</td><td>100</td><td>890</td><td><span style="color:var(--amber);font-weight:700">61%</span></td><td>67</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Tier Consent Distribution</span></div>
+          <div class="card-body">
+            <table>
+              <thead><tr><th>Tier</th><th>Active Consents</th><th>Producers Opted In</th><th>Recipients</th></tr></thead>
+              <tbody>
+                <tr><td><span class="tier tier-0">T0 Public</span></td><td>—</td><td>1,847 (all)</td><td>Public</td></tr>
+                <tr><td><span class="tier tier-1">T1 Aggregate</span></td><td>2,841</td><td>1,460 (79%)</td><td>7</td></tr>
+                <tr><td><span class="tier tier-2">T2 Field</span></td><td>892</td><td>614 (33%)</td><td>4</td></tr>
+                <tr><td><span class="tier tier-3">T3 Financial</span></td><td>558</td><td>382 (21%)</td><td>3</td></tr>
+                <tr><td><span class="tier tier-4">T4 Private</span></td><td colspan="3" style="color:var(--gray-500);font-style:italic">Never shared — 0 active consents</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Producers -->
+    <div id="a-producers" class="screen">
+      <div class="page-header flex-between">
+        <div><div class="page-title">Producer Accounts</div><div class="page-sub">1,847 registered · 212 onboarded this month</div></div>
+        <div class="flex gap-8">
+          <button class="btn btn-secondary">⬇ Export CSV</button>
+          <button class="btn btn-primary" style="background:#9333EA">＋ Invite Producers</button>
+        </div>
+      </div>
+      <div class="card mb-16">
+        <div class="card-header flex-between">
+          <span class="card-title">Producer List</span>
+          <div class="flex gap-8">
+            <input class="form-input" type="text" placeholder="Search by name, email, or RM…" style="width:220px;padding:6px 10px;font-size:13px">
+            <select class="form-input" style="width:auto;font-size:12px;padding:4px 8px"><option>All provinces</option><option>Saskatchewan</option><option>Alberta</option><option>Manitoba</option></select>
+            <select class="form-input" style="width:auto;font-size:12px;padding:4px 8px"><option>All statuses</option><option>Active</option><option>Pending setup</option><option>Inactive</option></select>
+          </div>
+        </div>
+        <table>
+          <thead><tr><th>Producer</th><th>Province</th><th>Operation Size</th><th>Data Completeness</th><th>Consents Active</th><th>Last Login</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+            <tr><td><strong>Jake Morden</strong><div style="font-size:11px;color:var(--gray-500)">jake@mordengrains.ca</div></td><td>SK</td><td>2,840 ac</td><td><div class="progress-bar" style="width:80px;margin-bottom:3px"><div class="progress-fill" style="width:84%"></div></div><span style="font-size:11.5px">84%</span></td><td>4</td><td>Today</td><td><span class="badge badge-green">Active</span></td><td><button class="btn btn-sm btn-secondary">View</button></td></tr>
+            <tr><td><strong>Sarah Kowalski</strong><div style="font-size:11px;color:var(--gray-500)">sarah@kowalski-farms.ca</div></td><td>AB</td><td>1,620 ac</td><td><div class="progress-bar" style="width:80px;margin-bottom:3px"><div class="progress-fill" style="width:91%"></div></div><span style="font-size:11.5px">91%</span></td><td>3</td><td>Oct 19</td><td><span class="badge badge-green">Active</span></td><td><button class="btn btn-sm btn-secondary">View</button></td></tr>
+            <tr><td><strong>Pete Andersen</strong><div style="font-size:11px;color:var(--gray-500)">pete@andersenag.ca</div></td><td>SK</td><td>4,100 ac</td><td><div class="progress-bar" style="width:80px;margin-bottom:3px"><div class="progress-fill" style="width:67%;background:var(--amber)"></div></div><span style="font-size:11.5px;color:var(--amber)">67%</span></td><td>2</td><td>Oct 12</td><td><span class="badge badge-amber">Incomplete setup</span></td><td><button class="btn btn-sm btn-secondary">View</button></td></tr>
+            <tr><td><strong>Lena Friesen</strong><div style="font-size:11px;color:var(--gray-500)">lena@friesenfarm.ca</div></td><td>MB</td><td>980 ac</td><td><div class="progress-bar" style="width:80px;margin-bottom:3px"><div class="progress-fill" style="width:95%"></div></div><span style="font-size:11.5px">95%</span></td><td>5</td><td>Oct 20</td><td><span class="badge badge-green">Active</span></td><td><button class="btn btn-sm btn-secondary">View</button></td></tr>
+            <tr><td><strong>Tom Braun</strong><div style="font-size:11px;color:var(--gray-500)">tbraun@prairieops.ca</div></td><td>SK</td><td>3,240 ac</td><td><div class="progress-bar" style="width:80px;margin-bottom:3px"><div class="progress-fill" style="width:22%;background:var(--red)"></div></div><span style="font-size:11.5px;color:var(--red)">22%</span></td><td>0</td><td>Sep 04</td><td><span class="badge badge-red">Inactive</span></td><td><button class="btn btn-sm btn-secondary">View</button></td></tr>
+          </tbody>
+        </table>
+        <div style="padding:12px 16px;font-size:12.5px;color:var(--gray-500);border-top:1px solid var(--gray-200)">Showing 5 of 1,847 producers · <a href="#" style="color:var(--green-700)">Load more</a></div>
+      </div>
+    </div>
+
+    <!-- Recipients -->
+    <div id="a-recipients" class="screen">
+      <div class="page-header flex-between">
+        <div><div class="page-title">Recipient Organisations</div><div class="page-sub">10 registered recipients · 2 pending approval</div></div>
+        <button class="btn btn-primary" style="background:#9333EA">＋ Add Recipient</button>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Registered Recipients</span></div>
+        <table>
+          <thead><tr><th>Organisation</th><th>Type</th><th>Max Tier</th><th>Active Consents</th><th>API Calls (30d)</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+            <tr><td><strong>AAFC AgriStability</strong><div style="font-size:11px;color:var(--gray-500)">Agriculture & Agri-Food Canada</div></td><td><span class="badge badge-blue">Government</span></td><td><span class="tier tier-1">T1</span></td><td>1,460</td><td>2,341</td><td><span class="badge badge-green">Active</span></td><td><button class="btn btn-sm btn-secondary">Manage</button></td></tr>
+            <tr><td><strong>SK Canola Dev. Commission</strong><div style="font-size:11px;color:var(--gray-500)">Industry association</div></td><td><span class="badge badge-green">Industry</span></td><td><span class="tier tier-2">T2</span></td><td>614</td><td>891</td><td><span class="badge badge-green">Active</span></td><td><button class="btn btn-sm btn-secondary">Manage</button></td></tr>
+            <tr><td><strong>Crop Insurance Board of SK</strong><div style="font-size:11px;color:var(--gray-500)">Provincial insurance body</div></td><td><span class="badge badge-blue">Government</span></td><td><span class="tier tier-3">T3</span></td><td>382</td><td>1,044</td><td><span class="badge badge-green">Active</span></td><td><button class="btn btn-sm btn-secondary">Manage</button></td></tr>
+            <tr><td><strong>Ag Canada Research</strong><div style="font-size:11px;color:var(--gray-500)">Federal research agency</div></td><td><span class="badge badge-blue">Government</span></td><td><span class="tier tier-1">T1</span></td><td>724</td><td>512</td><td><span class="badge badge-green">Active</span></td><td><button class="btn btn-sm btn-secondary">Manage</button></td></tr>
+            <tr><td><strong>AB Grain Farmers</strong><div style="font-size:11px;color:var(--gray-500)">Industry association</div></td><td><span class="badge badge-green">Industry</span></td><td><span class="tier tier-2">T2</span></td><td>0</td><td>0</td><td><span class="badge badge-amber">⏳ Pending approval</span></td><td><button class="btn btn-sm btn-primary" style="background:#9333EA">Review</button></td></tr>
+            <tr><td><strong>Statistics Canada</strong><div style="font-size:11px;color:var(--gray-500)">Federal statistics agency</div></td><td><span class="badge badge-blue">Government</span></td><td><span class="tier tier-1">T1</span></td><td>891</td><td>204</td><td><span class="badge badge-green">Active</span></td><td><button class="btn btn-sm btn-secondary">Manage</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Consent Registry -->
+    <div id="a-consents" class="screen">
+      <div class="page-header flex-between">
+        <div><div class="page-title">Consent Registry</div><div class="page-sub">All active producer–recipient consent relationships · append-only</div></div>
+        <div class="flex gap-8">
+          <button class="btn btn-secondary">⬇ Export Registry</button>
+        </div>
+      </div>
+      <div class="grid-4 mb-16">
+        <div class="stat-card"><div class="stat-label">Total Active Consents</div><div class="stat-value">4,291</div></div>
+        <div class="stat-card"><div class="stat-label">Revoked (30d)</div><div class="stat-value">24</div><div class="stat-unit text-muted">All revocations honoured within 24h</div></div>
+        <div class="stat-card"><div class="stat-label">Avg Consents / Producer</div><div class="stat-value">2.3</div></div>
+        <div class="stat-card"><div class="stat-label">New Consents (30d)</div><div class="stat-value">318</div><div class="stat-unit stat-change up">▲ 14% vs prior month</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header flex-between">
+          <span class="card-title">Consent Log (most recent)</span>
+          <div class="flex gap-8">
+            <select class="form-input" style="width:auto;font-size:12px;padding:4px 8px"><option>All tiers</option><option>Tier 1</option><option>Tier 2</option><option>Tier 3</option></select>
+            <select class="form-input" style="width:auto;font-size:12px;padding:4px 8px"><option>All recipients</option><option>AAFC</option><option>SK Canola</option></select>
+          </div>
+        </div>
+        <div class="log-row log-header">
+          <span>TIMESTAMP</span><span>PRODUCER</span><span>RECIPIENT · TIER</span><span>ACTION</span>
+        </div>
+        <div class="log-row"><span>2025-10-20 09:14</span><span>Jake Morden</span><span>AAFC AgriStability · <span class="tier tier-1">T1</span></span><span><span class="badge badge-green">GRANTED</span></span></div>
+        <div class="log-row"><span>2025-10-19 16:30</span><span>Sarah Kowalski</span><span>SK Canola Dev. · <span class="tier tier-2">T2</span></span><span><span class="badge badge-green">GRANTED</span></span></div>
+        <div class="log-row"><span>2025-10-18 11:02</span><span>Pete Andersen</span><span>Crop Ins. Board SK · <span class="tier tier-3">T3</span></span><span><span class="badge badge-green">GRANTED</span></span></div>
+        <div class="log-row"><span>2025-10-17 08:45</span><span>Lena Friesen</span><span>AAFC AgriStability · <span class="tier tier-1">T1</span></span><span><span class="badge badge-gray" style="color:var(--red)">REVOKED</span></span></div>
+        <div class="log-row"><span>2025-10-17 08:47</span><span>Lena Friesen</span><span>AAFC AgriStability · <span class="tier tier-1">T1</span></span><span><span class="badge badge-green">GRANTED</span></span></div>
+        <div class="log-row"><span>2025-10-15 14:20</span><span>Tom Braun</span><span>SK Canola Dev. · <span class="tier tier-2">T2</span></span><span><span class="badge badge-gray" style="color:var(--red)">REVOKED</span></span></div>
+        <div style="padding:10px 12px;font-size:12px;color:var(--gray-500);border-top:1px solid var(--gray-200)">Consent log is append-only and cryptographically signed. Entries cannot be deleted or modified.</div>
+      </div>
+    </div>
+
+    <!-- Access Requests -->
+    <div id="a-requests" class="screen">
+      <div class="page-header"><div class="page-title">Access Requests</div><div class="page-sub">Recipient organisations requesting new data tier access — requires admin review and producer consent campaign</div></div>
+      <div class="alert alert-warn">⚠️ 2 requests pending your review. Approving a request starts a producer consent campaign — producers must individually opt in before any data flows.</div>
+      <div class="card mb-16">
+        <div class="card-header"><span class="card-title">Pending Requests</span><span class="badge badge-amber">2 pending</span></div>
+        <table>
+          <thead><tr><th>Recipient</th><th>Requesting Access</th><th>Justification</th><th>Submitted</th><th>Producers Needed</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong>AB Grain Farmers</strong><div style="font-size:11px;color:var(--gray-500)">Industry association, Alberta</div></td>
+              <td><span class="tier tier-2">T2</span> Field-Level Yield &amp; Variety</td>
+              <td style="max-width:220px;font-size:12.5px">Annual crop performance benchmarking for Alberta producers. No financial data requested.</td>
+              <td>Oct 19, 2025</td>
+              <td>Min. 50 AB producers (n≥5 per cell)</td>
+              <td>
+                <div class="flex gap-8">
+                  <button class="btn btn-sm btn-primary" style="background:#9333EA">✓ Approve &amp; Campaign</button>
+                  <button class="btn btn-sm btn-secondary">✗ Deny</button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>U of Saskatchewan PASI</strong><div style="font-size:11px;color:var(--gray-500)">Academic research institute</div></td>
+              <td><span class="tier tier-2">T2</span> Soil Health + Variety Data</td>
+              <td style="max-width:220px;font-size:12.5px">Longitudinal soil carbon study, 5-year horizon. Anonymized at T2 — no producer identification.</td>
+              <td>Oct 16, 2025</td>
+              <td>Min. 100 SK producers</td>
+              <td>
+                <div class="flex gap-8">
+                  <button class="btn btn-sm btn-primary" style="background:#9333EA">✓ Approve &amp; Campaign</button>
+                  <button class="btn btn-sm btn-secondary">✗ Deny</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Resolved Requests</span></div>
+        <table>
+          <thead><tr><th>Recipient</th><th>Tier Requested</th><th>Decision</th><th>Date</th><th>Producers Enrolled</th></tr></thead>
+          <tbody>
+            <tr><td>SK Canola Dev. Commission</td><td><span class="tier tier-2">T2</span></td><td><span class="badge badge-green">Approved</span></td><td>Sep 01, 2025</td><td>614</td></tr>
+            <tr><td>Crop Insurance Board SK</td><td><span class="tier tier-3">T3</span></td><td><span class="badge badge-green">Approved</span></td><td>Aug 15, 2025</td><td>382</td></tr>
+            <tr><td>Unknown Corp (suspicious)</td><td><span class="tier tier-3">T3</span></td><td><span class="badge badge-red">Denied — insufficient justification</span></td><td>Jul 30, 2025</td><td>0</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Audit Log -->
+    <div id="a-audit" class="screen">
+      <div class="page-header flex-between">
+        <div><div class="page-title">System Audit Log</div><div class="page-sub">All data access events across all producers and recipients · immutable</div></div>
+        <div class="flex gap-8">
+          <select class="form-input" style="width:auto;font-size:12px;padding:4px 8px"><option>All event types</option><option>Data access</option><option>Consent change</option><option>Admin action</option><option>Auth events</option></select>
+          <button class="btn btn-secondary">⬇ Export</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header flex-between">
+          <span class="card-title">Event Log</span>
+          <input class="form-input" type="text" placeholder="Filter by user, IP, or endpoint…" style="width:260px;padding:6px 10px;font-size:12.5px">
+        </div>
+        <div class="log-row log-header" style="grid-template-columns:140px 100px 120px 1fr 80px">
+          <span>TIMESTAMP</span><span>ACTOR</span><span>EVENT TYPE</span><span>DETAIL</span><span>OUTCOME</span>
+        </div>
+        <div class="log-row" style="grid-template-columns:140px 100px 120px 1fr 80px"><span>2025-10-20 10:22</span><span>Ash (Admin)</span><span><span class="badge-purple badge" style="font-size:10px">Admin Action</span></span><span>Approved recipient SK Canola Dev. Commission — Tier 1 access</span><span><span class="badge badge-green">OK</span></span></div>
+        <div class="log-row" style="grid-template-columns:140px 100px 120px 1fr 80px"><span>2025-10-20 09:41</span><span>AAFC API</span><span><span class="badge badge-blue" style="font-size:10px">Data Access</span></span><span>GET /aggregate/yield?region=SK-06&crop=canola&year=2025 — T1</span><span><span class="badge badge-green">200</span></span></div>
+        <div class="log-row" style="grid-template-columns:140px 100px 120px 1fr 80px"><span>2025-10-20 09:14</span><span>Jake M.</span><span><span class="badge badge-green" style="font-size:10px">Consent</span></span><span>Granted T1 consent to AAFC AgriStability</span><span><span class="badge badge-green">OK</span></span></div>
+        <div class="log-row" style="grid-template-columns:140px 100px 120px 1fr 80px"><span>2025-10-19 16:30</span><span>Sarah K.</span><span><span class="badge badge-green" style="font-size:10px">Consent</span></span><span>Granted T2 consent to SK Canola Dev. Commission</span><span><span class="badge badge-green">OK</span></span></div>
+        <div class="log-row" style="grid-template-columns:140px 100px 120px 1fr 80px"><span>2025-10-19 15:02</span><span>AAFC API</span><span><span class="badge badge-blue" style="font-size:10px">Data Access</span></span><span>GET /aggregate/yield?region=SK-06 — T1</span><span><span class="badge badge-green">200</span></span></div>
+        <div class="log-row" style="grid-template-columns:140px 100px 120px 1fr 80px"><span>2025-10-16 04:33</span><span>AAFC API</span><span><span class="badge badge-blue" style="font-size:10px">Data Access</span></span><span>GET /producer/xxx/parcels — T2, no consent</span><span><span class="badge badge-red">403</span></span></div>
+        <div class="log-row" style="grid-template-columns:140px 100px 120px 1fr 80px"><span>2025-10-15 09:00</span><span>Ash (Admin)</span><span><span class="badge-purple badge" style="font-size:10px">Admin Action</span></span><span>Bulk invite sent to 212 SK producers — Oct 2025 cohort</span><span><span class="badge badge-green">OK</span></span></div>
+        <div class="log-row" style="grid-template-columns:140px 100px 120px 1fr 80px"><span>2025-10-14 11:05</span><span>Ash (Admin)</span><span><span class="badge-purple badge" style="font-size:10px">Admin Action</span></span><span>Activated Koncile template: agri_crop_insurance</span><span><span class="badge badge-green">OK</span></span></div>
+        <div style="padding:10px 12px;font-size:12px;color:var(--gray-500);border-top:1px solid var(--gray-200)">Audit log is cryptographically signed and append-only. Tamper detection is active.</div>
+      </div>
+    </div>
+
+    <!-- System Settings -->
+    <div id="a-settings" class="screen">
+      <div class="page-header"><div class="page-title">System Settings</div><div class="page-sub">Platform configuration · changes are logged to audit trail</div></div>
+      <div class="grid-2">
+        <div class="card mb-16">
+          <div class="card-header"><span class="card-title">Authentication (OIDC)</span><span class="badge badge-green">Connected</span></div>
+          <div class="card-body">
+            <div class="form-group"><label class="form-label">OIDC Issuer URL</label><input class="form-input" value="https://auth.fluidscientific.com/realms/sads" readonly></div>
+            <div class="form-group"><label class="form-label">Client ID</label><input class="form-input" value="sads-web-app" readonly></div>
+            <div class="form-group"><label class="form-label">Token Expiry</label><input class="form-input" value="8 hours"></div>
+            <div class="form-group"><label class="form-label">MFA Required for</label>
+              <select class="form-input"><option>Admins only</option><option>Admins + Recipients</option><option>All users</option></select>
+            </div>
+            <button class="btn btn-secondary">Test Connection</button>
+          </div>
+        </div>
+        <div class="card mb-16">
+          <div class="card-header"><span class="card-title">Privacy &amp; Data Governance</span></div>
+          <div class="card-body">
+            <div class="form-group"><label class="form-label">Cell Suppression Minimum (n≥)</label><input class="form-input" type="number" value="5"><div style="font-size:11.5px;color:var(--gray-500);margin-top:4px">Aligned with Statistics Canada methodology</div></div>
+            <div class="form-group"><label class="form-label">Tier 3/4 Field Encryption</label>
+              <select class="form-input"><option>AES-256 (active)</option><option>AES-128</option></select></div>
+            <div class="form-group"><label class="form-label">Document Retention (Koncile uploads)</label>
+              <select class="form-input"><option>90 days</option><option>180 days</option><option>1 year</option><option>Indefinite</option></select></div>
+            <div class="toggle-row">
+              <div><div class="toggle-label">Require explicit Koncile consent disclosure</div><div class="toggle-desc">Show third-party processing notice before OCR upload</div></div>
+              <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">API &amp; Integrations</span></div>
+          <div class="card-body">
+            <div class="form-group"><label class="form-label">Koncile API Key</label><input class="form-input" type="password" value="kc_live_xxxxxxxxxxxxxxxxxxxxxxxx"></div>
+            <div class="form-group"><label class="form-label">Rate Limit (requests/min per recipient)</label><input class="form-input" type="number" value="60"></div>
+            <div class="form-group"><label class="form-label">Object Storage Bucket</label><input class="form-input" value="sads-documents-ca-central-1"></div>
+            <button class="btn btn-secondary btn-sm">Rotate Koncile API Key</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Notifications</span></div>
+          <div class="card-body">
+            <div class="toggle-row">
+              <div><div class="toggle-label">Email admin on new access requests</div></div>
+              <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+            </div>
+            <div class="toggle-row">
+              <div><div class="toggle-label">Alert on 403 spike (>50 denials/hour)</div></div>
+              <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+            </div>
+            <div class="toggle-row">
+              <div><div class="toggle-label">Weekly producer onboarding digest</div></div>
+              <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+            </div>
+            <div class="toggle-row">
+              <div><div class="toggle-label">Alert on Koncile OCR failure rate >5%</div></div>
+              <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+            </div>
+            <div class="form-group mt-16"><label class="form-label">Admin notification email</label><input class="form-input" value="ash@fluidscientific.com"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main admin -->
+</div><!-- /portal-admin -->
+
+
+<script>
+  // Inject the Fluid Scientific logo into every sidebar on load
+  const LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 200" aria-label="Fluid Scientific"><path d="m15.37,51.18c0-27.42,16.77-41.23,41.03-41.23,22.08,0,37.79,11.6,40.44,34.65.44,3.8-2.45,7.18-6.28,7.18h-.38c-3.28,0-5.91-2.51-6.3-5.77-1.97-16.31-12.57-23.82-27.48-23.82-16.77,0-27.82,9.27-27.82,29v17.56h44.15c3.32,0,6.02,2.69,6.02,6.02h0c0,3.32-2.69,6.02-6.02,6.02H28.59v65.48c0,3.49-2.83,6.32-6.32,6.32h-.57c-3.49,0-6.32-2.83-6.32-6.32V51.18ZM116.78,12.51h.57c3.49,0,6.32,2.83,6.32,6.32v127.42c0,3.49-2.83,6.32-6.32,6.32h-.57c-3.49,0-6.32-2.83-6.32-6.32V18.84c0-3.49,2.83-6.32,6.32-6.32Z"/><path d="m146.76,106.02v-44.29c0-3.65,2.96-6.61,6.61-6.61h0c3.65,0,6.61,2.96,6.61,6.61v44.29c0,23.87,13.81,36.89,34.92,36.89s34.92-13.02,34.92-36.89v-44.29c0-3.65,2.96-6.61,6.61-6.61h0c3.65,0,6.61,2.96,6.61,6.61v44.29c0,32.35-19.33,49.12-48.14,49.12s-48.13-16.77-48.13-49.12Z"/><path d="m272.61,12.83c-5.72,0-10.06,4.34-10.06,10.06s4.34,10.06,10.06,10.06,10.06-4.34,10.06-10.06-4.34-10.06-10.06-10.06Z"/><path d="m272.71,55.12c-3.65,0-6.61,2.96-6.61,6.61v84.24c0,3.65,2.96,6.61,6.61,6.61s6.61-2.96,6.61-6.61V61.73c0-3.65-2.96-6.61-6.61-6.61Z"/><path d="m404.63,17.12c0-3.57-2.89-6.46-6.46-6.46s-6.46,2.89-6.46,6.46v50.03c-9.81-11.37-24.31-18.55-40.36-18.55-29.37,0-53.27,23.9-53.27,53.27s23.9,53.27,53.27,53.27,53.27-23.9,53.27-53.27c0-.21-.02-.41-.02-.61,0-.07.02-.13.02-.19V17.12Zm-53.27,125.1c-22.25,0-40.36-18.1-40.36-40.36s18.1-40.36,40.36-40.36,38.94,16.59,40.27,37.78c.06.85.08,1.71.08,2.57,0,22.25-18.1,40.36-40.36,40.36Z"/><path d="m205.3,190.05c-1.35,0-2.56-.17-3.61-.5-1.05-.33-2.06-.9-3.02-1.69-.21-.15-.36-.33-.46-.53-.1-.2-.16-.4-.16-.61,0-.33.13-.62.39-.88.26-.26.59-.39.99-.39.3,0,.58.09.84.28.71.6,1.46,1.06,2.24,1.37.78.31,1.7.46,2.75.46.75,0,1.44-.11,2.07-.33.63-.22,1.13-.52,1.51-.9.38-.38.56-.82.56-1.32-.02-.62-.22-1.13-.59-1.52-.38-.4-.93-.73-1.65-1.01-.72-.27-1.59-.5-2.61-.67-.94-.17-1.79-.4-2.54-.67-.75-.28-1.39-.62-1.9-1.04-.52-.42-.92-.92-1.2-1.51-.28-.58-.42-1.26-.42-2.01,0-1.05.3-1.96.9-2.72.6-.76,1.42-1.35,2.45-1.77,1.03-.41,2.2-.62,3.5-.62,1.18,0,2.29.17,3.33.5,1.03.33,1.87.79,2.51,1.35.45.36.68.75.68,1.16,0,.33-.14.62-.41.88-.27.26-.59.39-.94.39-.26,0-.49-.07-.68-.21-.3-.29-.71-.55-1.21-.79-.51-.23-1.05-.43-1.62-.58-.57-.15-1.12-.23-1.65-.23-.84,0-1.57.11-2.17.32-.6.21-1.06.51-1.38.88s-.48.81-.48,1.33c0,.58.18,1.06.55,1.43.37.37.88.67,1.54.9.66.23,1.41.44,2.25.63,1.03.21,1.96.44,2.78.7.82.26,1.51.59,2.07.99s1,.91,1.3,1.51c.3.6.45,1.35.45,2.24,0,1.03-.32,1.93-.96,2.71-.64.77-1.48,1.38-2.52,1.81-1.04.43-2.2.64-3.48.64Z"/><path d="m236.78,172.77c.41.19.65.48.72.88s-.05.76-.35,1.08c-.21.28-.47.43-.79.45-.32.03-.65-.04-.99-.19-.53-.26-1.09-.46-1.71-.62-.61-.15-1.24-.23-1.9-.23-1.07,0-2.03.16-2.89.49-.85.33-1.59.78-2.21,1.37-.62.58-1.1,1.28-1.42,2.09-.33.81-.49,1.7-.49,2.68,0,1.08.18,2.04.54,2.88.36.83.85,1.54,1.48,2.12s1.37,1.01,2.23,1.29c.85.28,1.78.43,2.78.43.64,0,1.26-.07,1.88-.21.61-.14,1.19-.34,1.73-.62.34-.15.67-.21.99-.17s.59.19.82.45c.3.36.41.73.34,1.11-.08.38-.31.65-.71.83-.47.24-.99.45-1.55.63-.56.18-1.14.32-1.72.41s-1.17.14-1.78.14c-1.35,0-2.63-.21-3.85-.62-1.21-.41-2.28-1.01-3.21-1.81-.93-.79-1.67-1.76-2.21-2.92-.54-1.15-.82-2.47-.82-3.95,0-1.32.25-2.55.76-3.66.51-1.12,1.22-2.09,2.13-2.92.91-.83,1.98-1.47,3.2-1.92,1.22-.46,2.56-.68,4-.68.9,0,1.78.1,2.63.31.86.21,1.65.5,2.38.88Z"/><path d="m250.7,188.48c-.02.38-.17.69-.46.94-.29.25-.63.37-1.03.37-.45,0-.81-.12-1.07-.37-.26-.25-.39-.56-.39-.94v-15.43c0-.38.14-.69.42-.94s.65-.37,1.1-.37c.38,0,.71.12,1,.37.29.25.44.56.44.94v15.43Z"/><path d="m263.75,171.74h9.72c.41,0,.76.12,1.03.36.27.24.41.54.41.9s-.14.65-.41.88c-.27.22-.62.34-1.03.34h-8.48l.28-.44v5.78l-.25-.26h7.19c.41,0,.76.12,1.03.36.27.24.41.55.41.93s-.14.65-.41.88c-.27.22-.62.33-1.03.33h-7.13l.2-.23v5.96l-.2-.21h8.4c.41,0,.76.12,1.03.37.27.25.41.54.41.86,0,.36-.14.66-.41.89-.27.23-.62.35-1.03.35h-9.72c-.41,0-.76-.12-1.03-.37-.27-.25-.41-.56-.41-.94v-15.43c0-.38.14-.69.41-.94.27-.25.62-.37,1.03-.37Z"/><path d="m300.25,171.74c.38,0,.68.12.92.35.23.23.35.52.35.86v15.53c0,.38-.14.69-.41.94-.27.25-.62.37-1.03.37-.21,0-.41-.03-.62-.1-.21-.07-.37-.16-.48-.28l-11.58-13.72.65-.36v13.29c0,.33-.12.61-.37.84-.24.23-.55.35-.93.35-.39,0-.71-.12-.94-.35-.23-.23-.35-.51-.35-.84v-15.56c0-.38.14-.69.41-.94.27-.25.62-.37,1.03-.37.21,0,.43.04.66.12.23.08.41.19.52.35l11.3,13.47-.42.36v-13.08c0-.34.12-.63.35-.86.24-.23.55-.35.94-.35Z"/><path d="m313.18,174.22c-.39,0-.73-.12-1.01-.35s-.42-.53-.42-.89.14-.68.42-.9c.28-.22.62-.33,1.01-.33h12.79c.41,0,.76.12,1.03.35.27.23.41.53.41.89s-.14.68-.41.9c-.27.22-.62.34-1.03.34h-12.79Zm6.4,15.58c-.45,0-.82-.12-1.1-.37-.28-.25-.42-.56-.42-.94v-15.45h3.04v15.45c0,.38-.15.69-.44.94-.29.25-.65.37-1.08.37Z"/><path d="m340.6,188.48c-.02.38-.17.69-.46.94-.29.25-.63.37-1.03.37-.45,0-.81-.12-1.07-.37-.26-.25-.39-.56-.39-.94v-15.43c0-.38.14-.69.42-.94.28-.25.65-.37,1.1-.37.38,0,.71.12,1,.37.29.25.44.56.44.94v15.43Z"/><path d="m353.7,189.8c-.45,0-.81-.12-1.08-.37-.27-.25-.41-.56-.41-.94v-15.43c0-.38.14-.69.41-.94s.62-.37,1.03-.37h9.53c.39,0,.73.12,1.01.36.28.24.42.54.42.9,0,.33-.14.61-.42.85-.28.24-.62.36-1.01.36h-8.23l.2-.26v5.75l-.17-.31h6.93c.39,0,.73.12,1.01.36.28.24.42.55.42.93,0,.31-.14.59-.42.84-.28.25-.62.37-1.01.37h-6.99l.23-.23v6.81c0,.38-.14.69-.42.94-.28.25-.62.37-1.01.37Z"/><path d="m378.08,188.48c-.02.38-.17.69-.47.94-.29.25-.63.37-1.03.37-.45,0-.81-.12-1.07-.37-.26-.25-.39-.56-.39-.94v-15.43c0-.38.14-.69.42-.94.28-.25.65-.37,1.1-.37.38,0,.71.12,1,.37s.44.56.44.94v15.43Z"/><path d="m403.7,172.77c.41.19.65.48.72.88.07.4-.05.76-.35,1.08-.21.28-.47.43-.79.45-.32.03-.65-.04-.99-.19-.53-.26-1.09-.46-1.71-.62-.61-.15-1.25-.23-1.9-.23-1.07,0-2.03.16-2.89.49-.86.33-1.59.78-2.21,1.37-.62.58-1.09,1.28-1.42,2.09-.33.81-.49,1.7-.49,2.68,0,1.08.18,2.04.54,2.88.36.83.85,1.54,1.48,2.12.63.58,1.37,1.01,2.23,1.29.85.28,1.78.43,2.78.43.64,0,1.26-.07,1.87-.21.61-.14,1.19-.34,1.73-.62.34-.15.67-.21.99-.17.32.04.59.19.82.45.3.36.41.73.34,1.11-.08.38-.31.65-.7.83-.47.24-.99.45-1.55.63-.56.18-1.14.32-1.72.41s-1.17.14-1.78.14c-1.35,0-2.63-.21-3.85-.62-1.21-.41-2.28-1.01-3.21-1.81-.93-.79-1.67-1.76-2.21-2.92-.54-1.15-.82-2.47-.82-3.95,0-1.32.25-2.55.76-3.66.51-1.12,1.22-2.09,2.13-2.92.91-.83,1.98-1.47,3.2-1.92,1.22-.46,2.55-.68,4-.68.9,0,1.78.1,2.63.31.85.21,1.65.5,2.38.88Z"/></svg>`;
+
+  const LOGO_BLOCK = `<div class="sidebar-logo">${LOGO_SVG}<div class="product-name">Sovereign Ag Data System</div></div>`;
+
+  document.querySelectorAll('.sidebar').forEach(sb => {
+    sb.insertAdjacentHTML('afterbegin', LOGO_BLOCK);
+  });
+
+  // Login logic
+  let selectedRole = 'producer';
+
+  function selectRole(el, role) {
+    document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedRole = role;
+  }
+
+  function handleLogin() {
+    document.getElementById('login-screen').style.display = 'none';
+    switchPortal(selectedRole);
+  }
+
+  function showLogin() {
+    document.getElementById('login-screen').style.display = 'flex';
+  }
+
+  function switchPortal(portal) {
+    // Hide all portals
+    ['producer','ocr','recipient','admin'].forEach(p => {
+      const el = document.getElementById('portal-' + p);
+      if (el) el.style.display = 'none';
+    });
+
+    // Show selected
+    const target = document.getElementById('portal-' + portal);
+    if (target) target.style.display = 'flex';
+
+    // Update tabs
+    document.querySelectorAll('.portal-tab').forEach(t => t.classList.remove('active'));
+    const tabs = document.querySelectorAll('.portal-tab');
+    if (portal === 'producer') tabs[0].classList.add('active');
+    if (portal === 'ocr') tabs[1].classList.add('active');
+    if (portal === 'recipient') tabs[2].classList.add('active');
+    if (portal === 'admin') tabs[3].classList.add('active');
+  }
+
+  function showScreen(screenId, navItem) {
+    // Find all screens in the current active portal
+    const activePortal = document.querySelector('.shell[style="display: flex;"], .shell:not([style*="none"])');
+    if (!activePortal) return;
+
+    activePortal.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    const target = document.getElementById(screenId);
+    if (target) target.classList.add('active');
+
+    // Update nav
+    if (navItem) {
+      activePortal.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      navItem.classList.add('active');
+    }
+  }
+
+  function switchTab(btn, tabId) {
+    const tabNav = btn.closest('.tab-nav');
+    tabNav.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    // Find tab contents (siblings of the tab-nav's parent)
+    const container = tabNav.parentElement;
+    container.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    const target = document.getElementById(tabId);
+    if (target) target.classList.add('active');
+  }
+
+  // ═══════════════════════════════════════════
+  //  KONCILE OCR WIZARD
+  // ═══════════════════════════════════════════
+  const KN_FIELDS = [
+    { icon:'🏢', name:'Elevator',      value:'Viterra — Rosetown, SK', conf:0.98, type:'Logistics',  delay:300  },
+    { icon:'📅', name:'Ticket Date',   value:'March 14, 2026',         conf:0.97, type:'Logistics',  delay:700  },
+    { icon:'👤', name:'Producer Name', value:'Oilseed Farms Ltd.',     conf:0.94, type:'Production', delay:1100 },
+    { icon:'🆔', name:'Farm ID',       value:'SK-47221-B',             conf:0.91, type:'Spatial',    delay:1500 },
+    { icon:'🌾', name:'Commodity',     value:'Canola No. 1',           conf:0.99, type:'Production', delay:1900 },
+    { icon:'⭐', name:'Grade',         value:'No. 1 Canada',           conf:0.98, type:'Production', delay:2300 },
+    { icon:'💧', name:'Moisture',      value:'8.2 %',                  conf:0.95, type:'Production', delay:2700 },
+    { icon:'⚖️', name:'Net Weight',   value:'42,850 kg',              conf:0.96, type:'Production', delay:3100 },
+    { icon:'📋', name:'Contract No.', value:'CNT-2026-03847',          conf:0.88, type:'Sales',      delay:3500 },
+    { icon:'🚛', name:'Freight Zone', value:'Zone C – SK Central',     conf:0.93, type:'Logistics',  delay:3900 },
+    { icon:'💰', name:'Settlement',   value:'$23,847.50',              conf:0.76, type:'Sales',      delay:4200 },
+  ];
+
+  function kn_confClass(c) {
+    if (c >= 0.90) return 'kn-conf-high';
+    if (c >= 0.80) return 'kn-conf-medium';
+    return 'kn-conf-low';
+  }
+  function kn_confLabel(c) { return Math.round(c * 100) + '%'; }
+  function kn_typeBg(t) {
+    return { Production:'#dcfce7', Sales:'#fef9c3', Spatial:'#dbeafe', Logistics:'#f3e8ff' }[t] || '#f3f4f6';
+  }
+  function kn_typeColor(t) {
+    return { Production:'#15803d', Sales:'#854d0e', Spatial:'#1e40af', Logistics:'#6b21a8' }[t] || '#555';
+  }
+
+  function kn_setStep(n) {
+    [1,2,3,4].forEach(i => {
+      const el = document.getElementById('kn-step-' + i);
+      if (!el) return;
+      el.className = 'kn-step' + (i < n ? ' done' : i === n ? ' active' : '');
+      el.querySelector('.kn-step-num').textContent = i < n ? '✓' : String(i);
+    });
+  }
+
+  function kn_selectTemplate(card) {
+    document.querySelectorAll('.kn-template-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+  }
+
+  function kn_simulateUpload() {
+    document.getElementById('kn-file-row').classList.add('show');
+    document.getElementById('kn-template-section').style.display = 'block';
+    const pa = document.getElementById('kn-privacy-alert');
+    if (pa) pa.style.display = 'flex';
+    document.getElementById('kn-upload-actions').style.display = 'flex';
+  }
+
+  function kn_startScan() {
+    kn_setStep(2);
+    document.getElementById('kn-upload-section').style.display = 'none';
+    document.getElementById('kn-scan-section').style.display = 'block';
+
+    const overlay  = document.getElementById('kn-scan-overlay');
+    const scanLine = document.getElementById('kn-scan-line');
+    const fill     = document.getElementById('kn-progress-fill');
+    const pct      = document.getElementById('kn-progress-pct');
+    const msg      = document.getElementById('kn-status-msg');
+
+    overlay.classList.add('active');
+    scanLine.classList.add('scanning');
+
+    // Render empty field rows (will slide in as scan progresses)
+    const list = document.getElementById('kn-fields-list');
+    list.innerHTML = '';
+    KN_FIELDS.forEach((f, i) => {
+      const row = document.createElement('div');
+      row.className = 'kn-field-row';
+      row.id = 'kn-field-' + i;
+      row.innerHTML =
+        '<div class="kn-field-icon" style="background:' + kn_typeBg(f.type) + '">' + f.icon + '</div>' +
+        '<div class="kn-field-info">' +
+          '<div class="kn-field-label">' + f.name + '</div>' +
+          '<div class="kn-field-value">' + f.value + '</div>' +
+          '<div class="kn-field-type" style="color:' + kn_typeColor(f.type) + '">→ ' + f.type + '</div>' +
+        '</div>' +
+        '<div class="kn-conf-badge ' + kn_confClass(f.conf) + '">' +
+          '<div class="kn-conf-dot"></div>' + kn_confLabel(f.conf) +
+        '</div>';
+      list.appendChild(row);
+    });
+
+    const msgs = [
+      'Initialising Koncile OCR…',
+      'Detecting document layout…',
+      'Extracting text regions…',
+      'Applying Grain Ticket template…',
+      'Running field recognition…',
+      'Scoring confidence…',
+      'Mapping to SADS schema…',
+      'Finalising extraction…',
+    ];
+
+    let progVal = 0;
+    const progInterval = setInterval(function() {
+      progVal = Math.min(progVal + Math.random() * 4 + 2, 100);
+      fill.style.width = progVal + '%';
+      pct.textContent  = Math.round(progVal) + '%';
+
+      const newMsg = msgs[Math.floor((progVal / 100) * msgs.length)];
+      if (newMsg !== msg.textContent) msg.textContent = newMsg;
+
+      // Reveal field rows progressively as scan passes threshold
+      KN_FIELDS.forEach(function(f, i) {
+        if (progVal >= ((i + 1) / KN_FIELDS.length) * 88) {
+          const row = document.getElementById('kn-field-' + i);
+          if (row && !row.classList.contains('visible')) row.classList.add('visible');
+        }
+      });
+
+      if (progVal >= 100) {
+        clearInterval(progInterval);
+        kn_finishScan();
+      }
+    }, 90);
+  }
+
+  function kn_finishScan() {
+    document.getElementById('kn-scan-line').classList.remove('scanning');
+    document.getElementById('kn-panel-title-text').textContent = '✓ Scan Complete';
+    const badge = document.getElementById('kn-panel-badge');
+    badge.textContent = 'Done';
+    badge.className = 'kn-panel-badge kn-badge-green';
+    document.getElementById('kn-status-spinner').style.display = 'none';
+    const statusMsg = document.getElementById('kn-status-msg');
+    statusMsg.textContent = '11 fields extracted · 1 flagged for review';
+    statusMsg.style.color = 'var(--green-700)';
+    document.getElementById('kn-fields-count').textContent = '11 / 11 fields';
+    document.getElementById('kn-flag-right').classList.add('show');
+    KN_FIELDS.forEach(function(f, i) {
+      const row = document.getElementById('kn-field-' + i);
+      if (row) row.classList.add('visible');
+    });
+    kn_setStep(3);
+    setTimeout(kn_showMapping, 1600);
+  }
+
+  function kn_showMapping() {
+    kn_setStep(4);
+    document.getElementById('kn-scan-section').style.display = 'none';
+    document.getElementById('kn-mapping-section').style.display = 'block';
+    document.getElementById('kn-success-banner').classList.add('show');
+  }
+
+  function kn_confirmAdd() {
+    document.getElementById('kn-flag-row').style.display = 'none';
+    document.getElementById('kn-consent-preview').style.display = 'none';
+    document.getElementById('kn-mapping-actions').style.display = 'none';
+
+    document.getElementById('kn-success-banner').innerHTML =
+      '<div class="kn-success-icon">🎉</div>' +
+      '<div class="kn-success-text">' +
+        '<div class="title">Record added to SADS</div>' +
+        '<div class="sub">Audit entry created · Consent applied · Data visible to authorised recipients</div>' +
+      '</div>';
+
+    const auditNote = document.createElement('div');
+    auditNote.style.cssText = 'margin:10px 18px 14px; padding:10px 12px; background:var(--green-100); border:1px solid var(--green-200); border-radius:8px; font-size:12px; color:var(--green-800);';
+    auditNote.innerHTML = '<strong>Audit record created:</strong> Document hash stored · Logged as SADS-DOC-2026-00847 · March 14, 2026 at 14:32 CST';
+    document.getElementById('kn-mapping-section').appendChild(auditNote);
+
+    const nextBar = document.createElement('div');
+    nextBar.className = 'kn-action-bar';
+    nextBar.innerHTML =
+      '<button class="btn btn-secondary" onclick="kn_resetAll()">Upload Another Document</button>' +
+      '<button class="btn btn-primary" onclick="showScreen(\'o-history\', document.querySelector(\'[onclick*=o-history]\'))">View Import History →</button>';
+    document.getElementById('kn-mapping-section').appendChild(nextBar);
+  }
+
+  function kn_resetAll() {
+    kn_setStep(1);
+    // Show/hide sections
+    document.getElementById('kn-upload-section').style.display = 'block';
+    document.getElementById('kn-scan-section').style.display = 'none';
+    document.getElementById('kn-mapping-section').style.display = 'none';
+    // Reset upload step UI
+    document.getElementById('kn-file-row').classList.remove('show');
+    document.getElementById('kn-template-section').style.display = 'none';
+    document.getElementById('kn-upload-actions').style.display = 'none';
+    const pa = document.getElementById('kn-privacy-alert');
+    if (pa) pa.style.display = 'none';
+    // Reset fields panel
+    document.getElementById('kn-fields-list').innerHTML = '';
+    document.getElementById('kn-fields-count').textContent = 'Waiting…';
+    document.getElementById('kn-flag-right').classList.remove('show');
+    // Reset mapping section for next use
+    const sb = document.getElementById('kn-success-banner');
+    if (sb) { sb.classList.remove('show'); sb.innerHTML =
+      '<div class="kn-success-icon">✅</div>' +
+      '<div class="kn-success-text">' +
+        '<div class="title">Extraction Complete — 11 fields extracted</div>' +
+        '<div class="sub">1 field flagged for review · Mapped to 3 SADS data types</div>' +
+      '</div>'; }
+    const fr = document.getElementById('kn-flag-row');
+    if (fr) { fr.style.display = ''; fr.classList.add('show'); }
+    const cp = document.getElementById('kn-consent-preview');
+    if (cp) { cp.style.display = ''; cp.classList.add('show'); }
+    const ma = document.getElementById('kn-mapping-actions');
+    if (ma) ma.style.display = '';
+    // Remove any appended audit/restart nodes beyond the initial mapping rows
+    const ms = document.getElementById('kn-mapping-section');
+    if (ms) {
+      const toRemove = ms.querySelectorAll('div[style*="margin:10px"], div.kn-action-bar:last-child');
+      toRemove.forEach(function(el) { if (el !== ma) el.remove(); });
+    }
+  }
+</script>
+
+</body>
+</html>
